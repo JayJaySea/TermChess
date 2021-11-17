@@ -8,5 +8,4 @@ pub fn test() {
 
 #[cfg(test)]
 mod test {
-    use super::*;
 }
