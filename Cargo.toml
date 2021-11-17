@@ -1,5 +1,6 @@
 [workspace]
 
 members = [
-    "term_chess"
+    "term_chess",
+    "lichess_api"
 ]
