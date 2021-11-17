@@ -1,8 +1,12 @@
+use std::collections::HashMap;
+
+pub fn test() {
+    let resp = reqwest::blocking::get("https://httpbin.org/ip").unwrap()
+        .json::<HashMap<String, String>>().unwrap();
+    println!("{:#?}", resp);
+}
+
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
+mod test {
+    use super::*;
 }

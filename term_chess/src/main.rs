@@ -1,3 +1,5 @@
+use lichess_api;
+
 fn main() {
-    println!("Hello, world!");
+    lichess_api::test();
 }
