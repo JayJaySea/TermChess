@@ -18,26 +18,27 @@ impl Rook {
 impl Piece for Rook {
     fn can_move_to(&self, board: &Board, to: Square) -> bool {
         if self.pos == to { return false; }
-    
-        if self.pos.x == to.x {
-            for pos in (self.pos.y..to.y).skip(1).map(|y| Square::new(self.pos.x, y)) {
-                if let Some(_) = board.get_piece(pos) {
-                    return false
-                }
-            }
-            
-            true
+   
+        let (dx, dy): (i8, i8) = if self.pos.x == to.x {
+            if to.y > self.pos.y { (0, 1) } else { (0, -1) }
         } else if self.pos.y == to.y {
-            for pos in (self.pos.x..to.x).skip(1).map(|x| Square::new(x, self.pos.y)) {
-                if let Some(_) = board.get_piece(pos) {
-                    return false
-                }
-            }
-
-            true
+            if to.x > self.pos.x { (1, 0) } else { (-1, 0) }
         } else {
-            false
+            return false;
+        };
+
+        let mut x = self.pos.x as i8 + dx;
+        let mut y = self.pos.y as i8 + dy;
+
+        while x as u8 != to.x || y as u8 != to.y {
+            if board.get_piece(Square::new(x as u8, y as u8)).is_some() {
+                return false;
+            }
+            x += dx;
+            y += dy;
         }
+
+        true
     }
 
     fn get_character(&self) -> char {
@@ -69,6 +70,13 @@ mod test {
    
         assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 5))), false);
         assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 2))), false);
+
+        board.set(Square::new(1, 1), None);
+
+        board.set(Square::new(5, 5), Some(Box::new(Rook::new(Square::new(5, 5), PieceColor::WHITE))));
+
+        assert_eq!(board.is_move_possible(Move::new(Square::new(5, 5), Square::new(1, 5))), true);
+        assert_eq!(board.is_move_possible(Move::new(Square::new(5, 5), Square::new(5, 1))), true);
     }
 
     #[test]

@@ -17,6 +17,8 @@ impl Knight {
 
 impl Piece for Knight {
     fn can_move_to(&self, _b: &Board, to: Square) -> bool {
+        if self.pos == to { return false; }
+
         let all_moves: Vec<(i8, i8)> = vec![
             ( 1,  2), ( 2,  1),
             (-1, -2), (-2, -1),
