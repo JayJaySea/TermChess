@@ -1,9 +1,33 @@
+mod board;
+mod pieces;
+
+/// # Move's square struct
+///
+/// holds information about move's start or end
+///
+/// # example
+///
+/// ```
+/// use chess_api::Square;
+///
+/// let _s = Square::new(0, 0);
+/// ```
 pub struct Square {
     x: u8,
     y: u8,
 }
 
 impl Square {
+    /// # Square's constructor
+    ///
+    /// note: `x` and `y` are 0 based 
+    ///
+    /// ```
+    /// use chess_api::Square;
+    ///
+    /// let s = Square::new(0, 1);
+    /// assert_eq!(s.to_uci(), "a2");
+    /// ```
     pub fn new(x: u8, y: u8) -> Square {
         assert!(x < 8);
         assert!(y < 8);
@@ -15,6 +39,10 @@ impl Square {
 
     pub fn to_uci(&self) -> String {
         format!("{}{}", "abcdefgh".chars().nth(self.x.into()).unwrap(), self.y + 1)
+    }
+
+    pub fn to_index(&self) -> usize {
+        (self.x + 8 * self.y).into()
     }
 }
 
@@ -36,6 +64,12 @@ impl Move {
         result
     }
 }
+
+
+
+
+
+
 
 
 
