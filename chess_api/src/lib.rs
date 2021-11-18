@@ -12,6 +12,7 @@ mod pieces;
 ///
 /// let _s = Square::new(0, 0);
 /// ```
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Square {
     x: u8,
     y: u8,
@@ -46,6 +47,7 @@ impl Square {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Move {
     start: Square,
     end: Square,
@@ -53,6 +55,8 @@ pub struct Move {
 
 impl Move {
     pub fn new(start: Square, end: Square) -> Move {
+        assert_ne!(start, end);
+
         Move {
             start, end
         }

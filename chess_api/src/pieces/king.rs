@@ -26,4 +26,8 @@ impl Piece for King {
             PieceColor::WHITE => 'K',
         }
     }
+
+    fn color(&self) -> PieceColor {
+        self.color
+    }
 }

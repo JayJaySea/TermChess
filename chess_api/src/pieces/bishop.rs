@@ -26,4 +26,8 @@ impl Piece for Bishop {
             PieceColor::WHITE => 'B',
         }
     }
+
+    fn color(&self) -> PieceColor {
+        self.color
+    }
 }

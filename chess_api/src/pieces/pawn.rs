@@ -26,4 +26,8 @@ impl Piece for Pawn {
             PieceColor::WHITE => 'P',
         }
     }
+
+    fn color(&self) -> PieceColor {
+        self.color
+    }
 }

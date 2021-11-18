@@ -1,17 +1,23 @@
 use super::pieces::*;
 use super::Square;
+use super::Move;
 
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
 }
 
 impl Board {
-    pub fn new() -> Board {
+    pub fn new_clear() -> Board {
         const INIT: Option<Box<dyn Piece>> = None;
 
-        let mut board = Board {
+        Board {
             pieces: [INIT; 64]
-        };
+        }
+    
+    }
+
+    pub fn new() -> Board {
+        let mut board = Board::new_clear();
 
         board.pieces[Square::new(0, 0).to_index()] = Some(Box::new(Rook::new(Square::new(0, 0), PieceColor::WHITE)));
         board.pieces[Square::new(1, 0).to_index()] = Some(Box::new(Knight::new(Square::new(1, 0), PieceColor::WHITE)));
@@ -41,6 +47,32 @@ impl Board {
 
     pub fn get_piece(&self, square: Square) -> &Option<Box<dyn Piece>> {
         &self.pieces[square.to_index()]
+    }
+
+    pub fn is_move_possible(&self, m: Move) -> bool {
+        let source_piece = self.get_piece(m.start);
+        let destination_piece = self.get_piece(m.end);
+
+        if let Some(source_piece) = source_piece {
+            if let Some(destination_piece) = destination_piece {
+                if source_piece.color() == destination_piece.color() {
+                    return false;
+                }
+            }
+
+            source_piece.can_move_to(self, m.end)
+        } else {
+            false
+        }
+    }
+
+    /// # Sets piece at square
+    ///
+    /// should only be used for setting up custom positions
+    /// not for moving pieces during game
+    ///
+    pub fn set(&mut self, square: Square, piece: Option<Box<dyn Piece>>) {
+        self.pieces[square.to_index()] = piece; 
     }
 }
 

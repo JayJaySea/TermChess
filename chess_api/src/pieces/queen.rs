@@ -26,4 +26,8 @@ impl Piece for Queen {
             PieceColor::WHITE => 'Q',
         }
     }
+
+    fn color(&self) -> PieceColor {
+        self.color
+    }
 }
