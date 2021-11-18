@@ -16,7 +16,7 @@ impl King {
 }
 
 impl Piece for King {
-    fn can_move_to(&self, board: &Board, to: Square) -> bool {
+    fn can_move_to(&self, _board: &Board, to: Square) -> bool {
         let dx: u8 = (self.pos.x as i8 - to.x as i8).abs() as u8;
         let dy: u8 = (self.pos.y as i8 - to.y as i8).abs() as u8;
         

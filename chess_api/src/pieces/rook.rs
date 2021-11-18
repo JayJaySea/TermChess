@@ -1,6 +1,7 @@
 use crate::Square;
 use super::{Piece, PieceColor};
 use crate::board::Board;
+use std::cmp;
 
 pub struct Rook {
     pos: Square,
@@ -18,27 +19,26 @@ impl Rook {
 impl Piece for Rook {
     fn can_move_to(&self, board: &Board, to: Square) -> bool {
         if self.pos == to { return false; }
-   
-        let (dx, dy): (i8, i8) = if self.pos.x == to.x {
-            if to.y > self.pos.y { (0, 1) } else { (0, -1) }
+  
+        if self.pos.x == to.x {
+            let min_y = cmp::min(self.pos.y, to.y);
+            let max_y = cmp::max(self.pos.y, to.y);
+
+            ((min_y + 1)..max_y)
+                .map(|y| Square::new(to.x, y))
+                .all(|pos| board.get_piece(pos).is_none())
+
         } else if self.pos.y == to.y {
-            if to.x > self.pos.x { (1, 0) } else { (-1, 0) }
+            let min_x = cmp::min(self.pos.x, to.x);
+            let max_x = cmp::max(self.pos.x, to.x);
+
+            ((min_x + 1)..max_x)
+                .map(|x| Square::new(x, to.y))
+                .all(|pos| board.get_piece(pos).is_none())
+
         } else {
-            return false;
-        };
-
-        let mut x = self.pos.x as i8 + dx;
-        let mut y = self.pos.y as i8 + dy;
-
-        while x as u8 != to.x || y as u8 != to.y {
-            if board.get_piece(Square::new(x as u8, y as u8)).is_some() {
-                return false;
-            }
-            x += dx;
-            y += dy;
+            false
         }
-
-        true
     }
 
     fn get_character(&self) -> char {

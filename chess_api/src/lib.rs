@@ -1,6 +1,10 @@
 mod board;
 mod pieces;
 
+pub fn min_max_rev<T: PartialOrd>(a: T, b: T) -> (T, T, bool) {
+    if a < b { (a, b, false) } else { (b, a, true ) }
+}
+
 /// # Move's square struct
 ///
 /// holds information about move's start or end

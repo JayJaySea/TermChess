@@ -1,6 +1,7 @@
 use crate::Square;
 use super::{Piece, PieceColor};
 use crate::board::Board;
+use crate::min_max_rev;
 
 pub struct Bishop {
     pos: Square,
@@ -17,27 +18,22 @@ impl Bishop {
 
 impl Piece for Bishop {
     fn can_move_to(&self, board: &Board, to: Square) -> bool {    
-        let dx: u8 = (self.pos.x as i8 - to.x as i8).abs() as u8;
-        let dy: u8 = (self.pos.y as i8 - to.y as i8).abs() as u8;
-
-        if dx == 0 { return false; }
-        if dx != dy { return false; }
-
-        let dx: i8 = if self.pos.x < to.x { 1 } else { -1 };
-        let dy: i8 = if self.pos.y < to.y { 1 } else { -1 };
-
-        let mut x = self.pos.x as i8 + dx;
-        let mut y = self.pos.y as i8 + dy;
-
-        while x as u8 != to.x || y as u8 != to.y {
-            if board.get_piece(Square::new(x as u8, y as u8)).is_some() {
-                return false;
+        let (min_x, max_x, rev_x) = min_max_rev(self.pos.x, to.x);
+        let (min_y, max_y, rev_y) = min_max_rev(self.pos.y, to.y);
+      
+        if min_x != max_x && max_x - min_x == max_y - min_y {
+            if rev_x == rev_y {
+                ((min_x + 1)..max_x)
+                    .zip((min_y + 1)..max_y)
+                    .map(|(x, y)| Square::new(x, y))
+                    .all(|pos| board.get_piece(pos).is_none())
+            } else {
+                ((min_x + 1)..max_x).rev()
+                    .zip((min_y + 1)..max_y)
+                    .map(|(x, y)| Square::new(x, y))
+                    .all(|pos| board.get_piece(pos).is_none())
             }
-            x += dx;
-            y += dy;
-        }
-
-        true
+        } else { false }
     }
 
     fn get_character(&self) -> char {
