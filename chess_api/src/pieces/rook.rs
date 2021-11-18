@@ -1,4 +1,4 @@
-use crate::{Square, Move};
+use crate::Square;
 use super::{Piece, PieceColor};
 use crate::board::Board;
 
@@ -56,6 +56,7 @@ impl Piece for Rook {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::Move;
 
     #[test]
     fn basic_rook_movement() {

@@ -16,8 +16,9 @@ impl Bishop {
 }
 
 impl Piece for Bishop {
-    fn can_move_to(&self, board: &Board, to: Square) -> bool {
-        false 
+    fn can_move_to(&self, _b: &Board, to: Square) -> bool {
+
+        false
     }
 
     fn get_character(&self) -> char {
@@ -31,3 +32,4 @@ impl Piece for Bishop {
         self.color
     }
 }
+
