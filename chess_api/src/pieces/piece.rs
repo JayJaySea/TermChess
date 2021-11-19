@@ -17,7 +17,7 @@ pub trait Piece {
     ///
     /// for complete move validation check Board::is_move_possible()
     ///
-    fn can_move_to(&self, board: &Board, to: Square) -> bool;
+    fn can_move_to(&self, board: &Board, to: Square) -> (bool, bool);
     
     /// # Returns character representing piece
     ///

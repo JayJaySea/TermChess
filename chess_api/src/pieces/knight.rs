@@ -16,8 +16,8 @@ impl Knight {
 }
 
 impl Piece for Knight {
-    fn can_move_to(&self, _b: &Board, to: Square) -> bool {
-        if self.pos == to { return false; }
+    fn can_move_to(&self, _b: &Board, to: Square) -> (bool, bool) {
+        if self.pos == to { return (false, false); }
 
         let all_moves: Vec<(i8, i8)> = vec![
             ( 1,  2), ( 2,  1),
@@ -29,11 +29,11 @@ impl Piece for Knight {
         for (dx, dy) in all_moves {
             if self.pos.x as i8 + dx == to.x as i8 && 
                 self.pos.y as i8 + dy == to.y as i8 {
-                return true;
+                return (true, false);
             }
         }
 
-        false 
+        (false, false) 
     }
 
     fn get_character(&self) -> char {

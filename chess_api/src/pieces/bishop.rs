@@ -17,23 +17,11 @@ impl Bishop {
 }
 
 impl Piece for Bishop {
-    fn can_move_to(&self, board: &Board, to: Square) -> bool {    
+    fn can_move_to(&self, board: &Board, to: Square) -> (bool, bool) {    
         let (min_x, max_x, rev_x) = min_max_rev(self.pos.x, to.x);
         let (min_y, max_y, rev_y) = min_max_rev(self.pos.y, to.y);
-      
-        if min_x != max_x && max_x - min_x == max_y - min_y {
-            if rev_x == rev_y {
-                ((min_x + 1)..max_x)
-                    .zip((min_y + 1)..max_y)
-                    .map(|(x, y)| Square::new(x, y))
-                    .all(|pos| board.get_piece(pos).is_none())
-            } else {
-                ((min_x + 1)..max_x).rev()
-                    .zip((min_y + 1)..max_y)
-                    .map(|(x, y)| Square::new(x, y))
-                    .all(|pos| board.get_piece(pos).is_none())
-            }
-        } else { false }
+    
+        ( max_x - min_x == max_y - min_y, true )
     }
 
     fn get_character(&self) -> char {

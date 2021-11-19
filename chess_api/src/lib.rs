@@ -1,5 +1,6 @@
 mod board;
 mod pieces;
+mod movement;
 
 pub fn min_max_rev<T: PartialOrd>(a: T, b: T) -> (T, T, bool) {
     if a < b { (a, b, false) } else { (b, a, true ) }

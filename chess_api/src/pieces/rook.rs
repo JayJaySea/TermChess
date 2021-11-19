@@ -17,28 +17,8 @@ impl Rook {
 }
 
 impl Piece for Rook {
-    fn can_move_to(&self, board: &Board, to: Square) -> bool {
-        if self.pos == to { return false; }
-  
-        if self.pos.x == to.x {
-            let min_y = cmp::min(self.pos.y, to.y);
-            let max_y = cmp::max(self.pos.y, to.y);
-
-            ((min_y + 1)..max_y)
-                .map(|y| Square::new(to.x, y))
-                .all(|pos| board.get_piece(pos).is_none())
-
-        } else if self.pos.y == to.y {
-            let min_x = cmp::min(self.pos.x, to.x);
-            let max_x = cmp::max(self.pos.x, to.x);
-
-            ((min_x + 1)..max_x)
-                .map(|x| Square::new(x, to.y))
-                .all(|pos| board.get_piece(pos).is_none())
-
-        } else {
-            false
-        }
+    fn can_move_to(&self, board: &Board, to: Square) -> (bool, bool) {
+        ( self.pos.x == to.x || self.pos.y == to.y, true )
     }
 
     fn get_character(&self) -> char {

@@ -1,6 +1,7 @@
 use super::pieces::*;
 use super::Square;
 use super::Move;
+use super::movement::LineMovement;
 
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
@@ -60,7 +61,11 @@ impl Board {
                 }
             }
 
-            source_piece.can_move_to(self, m.end)
+            let (can_move, validate_empty) = source_piece.can_move_to(self, m.end);
+
+            if validate_empty && can_move {
+                LineMovement::new(m.start, m.end).all(|pos| self.get_piece(pos).is_none())
+            } else { can_move }
         } else {
             false
         }

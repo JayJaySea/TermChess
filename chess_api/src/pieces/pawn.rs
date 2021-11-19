@@ -18,7 +18,7 @@ impl Pawn {
 }
 
 impl Piece for Pawn {
-    fn can_move_to(&self, board: &Board, to: Square) -> bool {
+    fn can_move_to(&self, board: &Board, to: Square) -> (bool, bool) {
         let dest_occupied = board.get_piece(to).is_some();
 
         let (distance, forward) = match self.color {
@@ -26,32 +26,35 @@ impl Piece for Pawn {
                 if to.y > self.pos.y { 
                     (to.y - self.pos.y, self.pos.y + 1)
                 } else {
-                    return false;
+                    return (false, false);
                 } 
             },
             PieceColor::BLACK => {
                 if to.y < self.pos.y {
                     (self.pos.y - to.y, self.pos.y - 1)
                 } else {
-                    return false;
+                    return (false, false);
                 }
             }
         };
 
 
-        if self.pos.x == to.x && !dest_occupied {
-            match distance {
-                1 => true,
-                2 => !self.moved && board.get_piece(Square::new(to.x, forward)).is_none(),
-                _ => false
-            }
-        } else if dest_occupied && distance == 1 {
-            if self.pos.x > to.x {
-                self.pos.x - to.x == 1 
-            } else if self.pos.x < to.x {
-                to.x - self.pos.x == 1 
-            } else { false }
-        } else { false } // todo en passant
+        (
+            if self.pos.x == to.x && !dest_occupied {
+                match distance {
+                    1 => true,
+                    2 => !self.moved && board.get_piece(Square::new(to.x, forward)).is_none(),
+                    _ => false
+                }
+            } else if dest_occupied && distance == 1 {
+                if self.pos.x > to.x {
+                    self.pos.x - to.x == 1 
+                } else if self.pos.x < to.x {
+                    to.x - self.pos.x == 1 
+                } else { false }
+            } else { false }, // todo en passant 
+            false
+        )
     }
 
     fn get_character(&self) -> char {
