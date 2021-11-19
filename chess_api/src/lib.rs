@@ -1,6 +1,10 @@
 mod board;
 mod pieces;
 
+pub fn min_max_rev<T: PartialOrd>(a: T, b: T) -> (T, T, bool) {
+    if a < b { (a, b, false) } else { (b, a, true ) }
+}
+
 /// # Move's square struct
 ///
 /// holds information about move's start or end
@@ -12,6 +16,7 @@ mod pieces;
 ///
 /// let _s = Square::new(0, 0);
 /// ```
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub struct Square {
     x: u8,
     y: u8,
@@ -46,6 +51,7 @@ impl Square {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Move {
     start: Square,
     end: Square,
@@ -53,6 +59,8 @@ pub struct Move {
 
 impl Move {
     pub fn new(start: Square, end: Square) -> Move {
+        assert_ne!(start, end);
+
         Move {
             start, end
         }

@@ -2,7 +2,7 @@ use crate::board::Board;
 use crate::Square;
 
 
-
+#[derive(PartialEq, Copy, Clone)]
 pub enum PieceColor {
     WHITE,
     BLACK
@@ -24,4 +24,6 @@ pub trait Piece {
     /// should be used as display character unless needed otherwise
     ///
     fn get_character(&self) -> char;
+
+    fn color(&self) -> PieceColor;
 }
