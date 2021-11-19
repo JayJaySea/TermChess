@@ -12,10 +12,7 @@ impl Menu for QuickPairingMenu {
 
 impl QuickPairingMenu {
     pub fn new() -> QuickPairingMenu {
-        let mut menu = QuickPairingMenu { };
-        menu.display();
-
-        menu
+        QuickPairingMenu { }
     }
     
     fn print(&self) {

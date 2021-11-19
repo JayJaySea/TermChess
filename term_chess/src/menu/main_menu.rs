@@ -27,12 +27,9 @@ impl Menu for MainMenu {
 
 impl MainMenu {
     pub fn new() -> MainMenu {
-        let mut menu = MainMenu {
+        MainMenu {
             choice: 0,
-        };
-
-        menu.display();
-        menu
+        }
     }
 
     fn print(&self) {

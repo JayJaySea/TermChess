@@ -21,13 +21,10 @@ impl Menu for ComputerMenu {
 
 impl ComputerMenu {
     pub fn new() -> ComputerMenu {
-        let mut menu = ComputerMenu {
+        ComputerMenu {
             strength: 0,
             color: 0,
-        };
-        menu.display();
-
-        menu
+        }
     }
 
 

@@ -13,10 +13,7 @@ impl Menu for FriendMenu {
 
 impl FriendMenu {
     pub fn new() -> FriendMenu {
-        let mut menu = FriendMenu { };
-        menu.display();
-
-        menu
+        FriendMenu { }
     }
 
     fn print(&self) {
