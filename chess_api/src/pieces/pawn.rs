@@ -204,8 +204,8 @@ mod test {
         let mut board = Board::new_clear();
 
         board.set(Square::new(3, 3), Some(Box::new(Pawn::new(Square::new(3, 3), PieceColor::WHITE))));
-        board.set(Square::new(4, 4), Some(Box::new(Pawn::new(Square::new(4, 4), PieceColor::BLACK))));
-        board.set(Square::new(2, 4), Some(Box::new(Pawn::new(Square::new(2, 4), PieceColor::BLACK))));
+        board.set(Square::new(4, 4), Some(Box::new(Pawn::new(Square::new(4, 4), PieceColor::WHITE))));
+        board.set(Square::new(2, 4), Some(Box::new(Pawn::new(Square::new(2, 4), PieceColor::WHITE))));
 
         assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
         assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), false);
@@ -216,8 +216,8 @@ mod test {
         let mut board = Board::new_clear();
 
         board.set(Square::new(3, 3), Some(Box::new(Pawn::new(Square::new(3, 3), PieceColor::BLACK))));
-        board.set(Square::new(4, 2), Some(Box::new(Pawn::new(Square::new(4, 2), PieceColor::WHITE))));
-        board.set(Square::new(2, 2), Some(Box::new(Pawn::new(Square::new(2, 2), PieceColor::WHITE))));
+        board.set(Square::new(4, 2), Some(Box::new(Pawn::new(Square::new(4, 2), PieceColor::BLACK))));
+        board.set(Square::new(2, 2), Some(Box::new(Pawn::new(Square::new(2, 2), PieceColor::BLACK))));
 
         assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
         assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), false);
