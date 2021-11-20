@@ -1,6 +1,18 @@
 use super::pieces::*;
 use super::movement::*;
 
+pub enum PostMoveStatus {
+    NORMAL,
+    CHECKMATE,
+    STELEMATE,
+    CHECK
+}
+
+pub enum MoveFailReason {
+    ILLEGAL_MOVE,
+    CHECK
+}
+
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
 }
@@ -71,6 +83,19 @@ impl Board {
         }
     }
 
+    pub fn perform_move(&mut self, m: Move) -> bool { // todo more sophisticated movement error indicator
+        if self.is_move_possible(m) {
+            let src = m.start().to_index();
+            let dst = m.end().to_index();
+
+            self.pieces[dst] = self.pieces[src].take();
+
+            true
+        } else {
+            false
+        }
+    }
+
     /// # Sets piece at square
     ///
     /// should only be used for setting up custom positions
@@ -105,5 +130,38 @@ mod test {
         assert_eq!(b.get_piece(Square::new(4, 7)).as_ref().unwrap().get_character(), 'k');
 
         assert!(b.get_piece(Square::new(4, 4)).is_none());
+    }
+
+    #[test]
+    fn basic_board_movement() {
+        let mut b = Board::new();
+
+        // 1.c4 e5 2.Nc3 Nc6 3.g3 g6
+        // c4 e5
+        assert_eq!(b.perform_move(Move::new(Square::new(2, 1), Square::new(2, 3))), true);
+        assert_eq!(b.get_piece(Square::new(2, 3)).as_ref().unwrap().get_character(), 'P');
+        //assert_eq!(b.get_piece(Square::new(2, 1)), None);
+   
+        assert_eq!(b.perform_move(Move::new(Square::new(4, 6), Square::new(4, 4))), true);
+        assert_eq!(b.get_piece(Square::new(4, 4)).as_ref().unwrap().get_character(), 'p');
+        //assert_eq!(b.get_piece(Square::new(4, 6)), None);
+        
+        // Nc3 Nc6
+        assert_eq!(b.perform_move(Move::new(Square::new(1, 0), Square::new(2, 2))), true);
+        assert_eq!(b.get_piece(Square::new(2, 2)).as_ref().unwrap().get_character(), 'N');
+        //assert_eq!(b.get_piece(Square::new(1, 0)), None);
+   
+        assert_eq!(b.perform_move(Move::new(Square::new(1, 7), Square::new(2, 5))), true);
+        assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
+        //assert_eq!(b.get_piece(Square::new(1, 7)), None);
+
+        // g3 g6
+        assert_eq!(b.perform_move(Move::new(Square::new(6, 1), Square::new(6, 2))), true);
+        assert_eq!(b.get_piece(Square::new(6, 2)).as_ref().unwrap().get_character(), 'P');
+        //assert_eq!(b.get_piece(Square::new(6, 1)), None);
+   
+        assert_eq!(b.perform_move(Move::new(Square::new(6, 6), Square::new(6, 5))), true);
+        assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
+        //assert_eq!(b.get_piece(Square::new(1, 7)), None);
     }
 }

@@ -1,3 +1,5 @@
+use crate::board::Board;
+
 /// # Move's square struct
 ///
 /// holds information about move's start or end
