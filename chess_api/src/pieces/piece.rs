@@ -1,5 +1,5 @@
 use crate::board::Board;
-use crate::Square;
+use crate::movement::Move;
 
 
 #[derive(PartialEq, Copy, Clone)]
@@ -17,7 +17,7 @@ pub trait Piece {
     ///
     /// for complete move validation check Board::is_move_possible()
     ///
-    fn can_move_to(&self, board: &Board, to: Square) -> (bool, bool);
+    fn can_move_to(&self, board: &Board, m: Move) -> (bool, bool);
     
     /// # Returns character representing piece
     ///

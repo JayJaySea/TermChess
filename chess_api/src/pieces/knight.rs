@@ -1,23 +1,22 @@
-use crate::Square;
 use super::{Piece, PieceColor};
+use crate::movement::Move;
 use crate::board::Board;
 
 pub struct Knight {
-    pos: Square,
     color: PieceColor
 }
 
 impl Knight {
-    pub fn new(pos: Square, color: PieceColor) -> Knight {
+    pub fn new(color: PieceColor) -> Knight {
         Knight {
-            pos, color
+            color
         }
     }
 }
 
 impl Piece for Knight {
-    fn can_move_to(&self, _b: &Board, to: Square) -> (bool, bool) {
-        if self.pos == to { return (false, false); }
+    fn can_move_to(&self, _b: &Board, m: Move) -> (bool, bool) {
+        let ((sx, sy), (ex, ey)) = m.to_coords();
 
         let all_moves: Vec<(i8, i8)> = vec![
             ( 1,  2), ( 2,  1),
@@ -27,8 +26,8 @@ impl Piece for Knight {
         ];
 
         for (dx, dy) in all_moves {
-            if self.pos.x as i8 + dx == to.x as i8 && 
-                self.pos.y as i8 + dy == to.y as i8 {
+            if sx as i8 + dx == ex as i8 && 
+                sy as i8 + dy == ey as i8 {
                 return (true, false);
             }
         }
@@ -51,13 +50,13 @@ impl Piece for Knight {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::Move;
+    use crate::movement::Square;
 
     #[test]
     fn basic_knight_movement() {
         let mut board = Board::new_clear();
 
-        board.set(Square::new(3, 3), Some(Box::new(Knight::new(Square::new(3, 3), PieceColor::WHITE))));
+        board.set(Square::new(3, 3), Some(Box::new(Knight::new(PieceColor::WHITE))));
 
         assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 5))), true);
         assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 4))), true);
@@ -82,7 +81,7 @@ mod test {
     fn knight_movement_near_positive_board_edges() {
         let mut board = Board::new_clear();
 
-        board.set(Square::new(6, 6), Some(Box::new(Knight::new(Square::new(6, 6), PieceColor::WHITE))));
+        board.set(Square::new(6, 6), Some(Box::new(Knight::new(PieceColor::WHITE))));
 
         assert_eq!(board.is_move_possible(Move::new(Square::new(6, 6), Square::new(4, 7))), true);
         assert_eq!(board.is_move_possible(Move::new(Square::new(6, 6), Square::new(4, 5))), true);
@@ -94,7 +93,7 @@ mod test {
     fn knight_movement_near_negative_board_edges() {
         let mut board = Board::new_clear();
 
-        board.set(Square::new(1, 1), Some(Box::new(Knight::new(Square::new(1, 1), PieceColor::WHITE))));
+        board.set(Square::new(1, 1), Some(Box::new(Knight::new(PieceColor::WHITE))));
 
         assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(0, 3))), true);
         assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(2, 3))), true);

@@ -1,7 +1,5 @@
 use super::pieces::*;
-use super::Square;
-use super::Move;
-use super::movement::LineMovement;
+use super::movement::*;
 
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
@@ -20,27 +18,27 @@ impl Board {
     pub fn new() -> Board {
         let mut board = Board::new_clear();
 
-        board.pieces[Square::new(0, 0).to_index()] = Some(Box::new(Rook::new(Square::new(0, 0), PieceColor::WHITE)));
-        board.pieces[Square::new(1, 0).to_index()] = Some(Box::new(Knight::new(Square::new(1, 0), PieceColor::WHITE)));
-        board.pieces[Square::new(2, 0).to_index()] = Some(Box::new(Bishop::new(Square::new(2, 0), PieceColor::WHITE)));
-        board.pieces[Square::new(3, 0).to_index()] = Some(Box::new(Queen::new(Square::new(3, 0), PieceColor::WHITE)));
-        board.pieces[Square::new(4, 0).to_index()] = Some(Box::new(King::new(Square::new(4, 0), PieceColor::WHITE)));
-        board.pieces[Square::new(5, 0).to_index()] = Some(Box::new(Bishop::new(Square::new(5, 0), PieceColor::WHITE)));
-        board.pieces[Square::new(6, 0).to_index()] = Some(Box::new(Knight::new(Square::new(6, 0), PieceColor::WHITE)));
-        board.pieces[Square::new(7, 0).to_index()] = Some(Box::new(Rook::new(Square::new(7, 0), PieceColor::WHITE)));
+        board.pieces[Square::new(0, 0).to_index()] = Some(Box::new(Rook::new(PieceColor::WHITE)));
+        board.pieces[Square::new(1, 0).to_index()] = Some(Box::new(Knight::new(PieceColor::WHITE)));
+        board.pieces[Square::new(2, 0).to_index()] = Some(Box::new(Bishop::new(PieceColor::WHITE)));
+        board.pieces[Square::new(3, 0).to_index()] = Some(Box::new(Queen::new(PieceColor::WHITE)));
+        board.pieces[Square::new(4, 0).to_index()] = Some(Box::new(King::new(PieceColor::WHITE)));
+        board.pieces[Square::new(5, 0).to_index()] = Some(Box::new(Bishop::new(PieceColor::WHITE)));
+        board.pieces[Square::new(6, 0).to_index()] = Some(Box::new(Knight::new(PieceColor::WHITE)));
+        board.pieces[Square::new(7, 0).to_index()] = Some(Box::new(Rook::new(PieceColor::WHITE)));
         
-        board.pieces[Square::new(0, 7).to_index()] = Some(Box::new(Rook::new(Square::new(0, 7), PieceColor::BLACK)));
-        board.pieces[Square::new(1, 7).to_index()] = Some(Box::new(Knight::new(Square::new(1, 7), PieceColor::BLACK)));
-        board.pieces[Square::new(2, 7).to_index()] = Some(Box::new(Bishop::new(Square::new(2, 7), PieceColor::BLACK)));
-        board.pieces[Square::new(3, 7).to_index()] = Some(Box::new(Queen::new(Square::new(3, 7), PieceColor::BLACK)));
-        board.pieces[Square::new(4, 7).to_index()] = Some(Box::new(King::new(Square::new(4, 7), PieceColor::BLACK)));
-        board.pieces[Square::new(5, 7).to_index()] = Some(Box::new(Bishop::new(Square::new(5, 7), PieceColor::BLACK)));
-        board.pieces[Square::new(6, 7).to_index()] = Some(Box::new(Knight::new(Square::new(6, 7), PieceColor::BLACK)));
-        board.pieces[Square::new(7, 7).to_index()] = Some(Box::new(Rook::new(Square::new(7, 7), PieceColor::BLACK)));
+        board.pieces[Square::new(0, 7).to_index()] = Some(Box::new(Rook::new(PieceColor::BLACK)));
+        board.pieces[Square::new(1, 7).to_index()] = Some(Box::new(Knight::new(PieceColor::BLACK)));
+        board.pieces[Square::new(2, 7).to_index()] = Some(Box::new(Bishop::new(PieceColor::BLACK)));
+        board.pieces[Square::new(3, 7).to_index()] = Some(Box::new(Queen::new(PieceColor::BLACK)));
+        board.pieces[Square::new(4, 7).to_index()] = Some(Box::new(King::new(PieceColor::BLACK)));
+        board.pieces[Square::new(5, 7).to_index()] = Some(Box::new(Bishop::new(PieceColor::BLACK)));
+        board.pieces[Square::new(6, 7).to_index()] = Some(Box::new(Knight::new(PieceColor::BLACK)));
+        board.pieces[Square::new(7, 7).to_index()] = Some(Box::new(Rook::new(PieceColor::BLACK)));
 
         for i in 0..8 {
-            board.pieces[Square::new(i, 1).to_index()] = Some(Box::new(Pawn::new(Square::new(i, 1), PieceColor::WHITE)));
-            board.pieces[Square::new(i, 6).to_index()] = Some(Box::new(Pawn::new(Square::new(i, 6), PieceColor::BLACK)));
+            board.pieces[Square::new(i, 1).to_index()] = Some(Box::new(Pawn::new(PieceColor::WHITE)));
+            board.pieces[Square::new(i, 6).to_index()] = Some(Box::new(Pawn::new(PieceColor::BLACK)));
         }
 
         board
@@ -51,8 +49,10 @@ impl Board {
     }
 
     pub fn is_move_possible(&self, m: Move) -> bool {
-        let source_piece = self.get_piece(m.start);
-        let destination_piece = self.get_piece(m.end);
+        let (src, dst) = m.to_squares();
+
+        let source_piece = self.get_piece(src);
+        let destination_piece = self.get_piece(dst);
 
         if let Some(source_piece) = source_piece {
             if let Some(destination_piece) = destination_piece {
@@ -61,10 +61,10 @@ impl Board {
                 }
             }
 
-            let (can_move, validate_empty) = source_piece.can_move_to(self, m.end);
+            let (can_move, validate_empty) = source_piece.can_move_to(self, m);
 
             if validate_empty && can_move {
-                LineMovement::new(m.start, m.end).all(|pos| self.get_piece(pos).is_none())
+                LineMovement::from(m).all(|pos| self.get_piece(pos).is_none())
             } else { can_move }
         } else {
             false
