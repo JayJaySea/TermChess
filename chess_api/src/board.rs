@@ -1,20 +1,6 @@
 use super::pieces::*;
 use super::movement::*;
 
-/*
-pub enum PostMoveStatus {
-    NORMAL,
-    CHECKMATE,
-    STELEMATE,
-    CHECK
-}
-
-pub enum MoveFailReason {
-    ILLEGAL_MOVE,
-    CHECK
-}
-*/
-
 
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
@@ -111,13 +97,13 @@ impl Board {
 
     // advanced board state getters
     /// # Returns true if given square is attacked by given player
-    pub fn is_square_attacked(_color: PieceColor) -> bool {
-        todo!("Implement is_square_attacked"); 
+    pub fn is_square_attacked(&self, square: Square, color: PieceColor) -> bool {
+        self.pieces(Some(color)).any(|(start, _)| self.is_move_possible(Move::new(start, square)))
     }
 
     /// # Returns true if given square is attacked by given player after simulating move
-    pub fn is_square_attacked_after_move(_color: PieceColor, _m: Move) -> bool {
-        todo!("Implement is_square_attacked_after_move"); 
+    pub fn is_square_attacked_after_move(&self, square: Square, color: PieceColor, m: Move) -> bool {
+        self.pieces(Some(color)).any(|(start, _)| self.is_move_possible_after_move(m, Move::new(start, square)))
     }
 
     // move possibility checks
@@ -141,6 +127,30 @@ impl Board {
 
             if validate_block && can_move && check_block {
                 LineMovement::from(m).all(|pos| self.get_piece(pos).is_none())
+            } else { can_move }
+        } else {
+            false
+        }
+    }
+
+    // todo test and merge with other function
+    fn is_move_possible_after_move(&self, m1: Move, m2: Move) -> bool {
+        let (src, dst) = m2.to_squares();
+
+        let source_piece = self.get_piece_after_move(src, m1);
+        let destination_piece = self.get_piece_after_move(dst, m1);
+
+        if let Some(source_piece) = source_piece {
+            if let Some(destination_piece) = destination_piece {
+                if source_piece.color() == destination_piece.color() {
+                    return false;
+                }
+            }
+
+            let (can_move, validate_block) = source_piece.can_move_to(self, m2);
+
+            if validate_block && can_move {
+                LineMovement::from(m2).all(|pos| self.get_piece_after_move(pos, m1).is_none())
             } else { can_move }
         } else {
             false

@@ -1,11 +1,23 @@
 use crate::board::Board;
 use crate::movement::Move;
+use std::ops::Not;
 
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum PieceColor {
     WHITE,
     BLACK
+}
+
+impl Not for PieceColor {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        match self {
+            PieceColor::WHITE => PieceColor::BLACK,
+            PieceColor::BLACK => PieceColor::WHITE
+        }
+    }
 }
 
 pub trait Piece {
