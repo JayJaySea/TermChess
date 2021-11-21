@@ -1,3 +1,6 @@
+use std::io;
+use std::io::{ stdin, stdout, Read, Write };
+
 pub mod menu {
     pub mod main_menu;
     mod quick_pairing_menu;
@@ -16,19 +19,40 @@ struct Input {}
 
 impl Input {
     fn one_to_(n: u32) -> u32 {
-        let mut option = String::new();
+        let mut line = String::new();
         let mut input:u32 = 0;
 
-        std::io::stdin().read_line(&mut option).expect("Error: Failed to take standard input!"); 
-        match option.trim().parse::<u32>() {
-            Ok(x) if  x > 0 && x <= n => { input = x; },
+        std::io::stdin().read_line(&mut line).expect("Error: Failed to take standard input!"); 
+
+        match line.trim().parse::<u32>() {
+            Ok(x) 
+                if x > 0 && x <= n 
+                => { input = x; },
+
             Ok(_) | Err(_) => (),
         }
 
         input
     }
 
-    fn proceed() { }
+
+    fn proceed() -> bool {
+        let mut line = String::new();
+
+        print!("\nProceed? [Y/n] ");
+        io::stdout().flush().unwrap();
+
+        loop {
+            line.clear();
+            std::io::stdin().read_line(&mut line).expect("Error: Failed to take standard input!"); 
+            if line.trim() == "Y" {
+                return true;
+            }
+            else if line.trim() == "n" {
+                return false;
+            }
+        }
+    }
 }
 
 fn clean_screen() {
