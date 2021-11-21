@@ -16,8 +16,8 @@ impl Bishop {
 
 impl Piece for Bishop {
     fn can_move_to(&self, _b: &Board, m: Move) -> (bool, bool) {    
-        let ((min_x, max_x), (min_y, max_y)) = m.min_max_x_y();
-        ( max_x - min_x == max_y - min_y, true )
+        let (dx, dy) = m.to_deltas();
+        ( dx == dy, true )
     }
 
     fn get_character(&self) -> char {

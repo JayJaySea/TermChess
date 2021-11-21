@@ -16,8 +16,8 @@ impl Rook {
 
 impl Piece for Rook {
     fn can_move_to(&self, _b: &Board, m: Move) -> (bool, bool) {
-        let ((sx, sy), (ex, ey)) = m.to_coords();
-        ( sx == ex || sy == ey, true )
+        let (dx, dy) = m.to_deltas();
+        ( dx == 0 || dy == 0, true )
     }
 
     fn get_character(&self) -> char {

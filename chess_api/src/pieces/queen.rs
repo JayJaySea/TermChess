@@ -16,8 +16,8 @@ impl Queen {
 
 impl Piece for Queen {
     fn can_move_to(&self, _b: &Board, m: Move) -> (bool, bool) {
-        let ((min_x, max_x), (min_y, max_y)) = m.min_max_x_y();
-        ( min_x == max_x || min_y == max_y || max_y - min_y == max_x - min_x, true )
+        let (dx, dy) = m.to_deltas();
+        ( dx == 0 || dy == 0 || dx == dy, true )
     }
 
     fn get_character(&self) -> char {

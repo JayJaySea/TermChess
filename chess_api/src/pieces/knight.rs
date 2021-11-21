@@ -16,23 +16,8 @@ impl Knight {
 
 impl Piece for Knight {
     fn can_move_to(&self, _b: &Board, m: Move) -> (bool, bool) {
-        let ((sx, sy), (ex, ey)) = m.to_coords();
-
-        let all_moves: Vec<(i8, i8)> = vec![
-            ( 1,  2), ( 2,  1),
-            (-1, -2), (-2, -1),
-            ( 1, -2), ( 2, -1),
-            (-1,  2), (-2,  1),
-        ];
-
-        for (dx, dy) in all_moves {
-            if sx as i8 + dx == ex as i8 && 
-                sy as i8 + dy == ey as i8 {
-                return (true, false);
-            }
-        }
-
-        (false, false) 
+        let (dx, dy) = m.to_deltas();
+        ((dx == 2 && dy == 1) || (dx == 1 && dy == 2), false)
     }
 
     fn get_character(&self) -> char {

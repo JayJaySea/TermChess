@@ -1,6 +1,7 @@
 use super::pieces::*;
 use super::movement::*;
 
+/*
 pub enum PostMoveStatus {
     NORMAL,
     CHECKMATE,
@@ -12,6 +13,7 @@ pub enum MoveFailReason {
     ILLEGAL_MOVE,
     CHECK
 }
+*/
 
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
