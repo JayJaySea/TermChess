@@ -15,6 +15,36 @@ pub enum MoveFailReason {
 }
 */
 
+pub struct SquareIterator<'a> {
+    board: &'a Board,
+    index: usize
+}
+
+impl<'a> SquareIterator<'a> {
+    fn new(board: &'a Board) -> SquareIterator<'a> {
+        SquareIterator { 
+            board,
+            index: 0
+        }
+    }
+}
+
+impl<'a> Iterator for SquareIterator<'a> {
+    type Item = &'a Option<Box<dyn Piece>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index == 64 {
+            None
+        } else {
+            let square = &self.board.pieces[self.index];
+            self.index += 1;
+            Some(square)
+        }
+    }
+}
+
+
+
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
 }
@@ -62,7 +92,7 @@ impl Board {
         &self.pieces[square.to_index()]
     }
 
-    pub fn is_move_possible(&self, m: Move) -> bool {
+    fn is_move_possible_skippable_checks(&self, m: Move, check_block: bool) -> bool {
         let (src, dst) = m.to_squares();
 
         let source_piece = self.get_piece(src);
@@ -75,14 +105,22 @@ impl Board {
                 }
             }
 
-            let (can_move, validate_empty) = source_piece.can_move_to(self, m);
+            let (can_move, validate_block) = source_piece.can_move_to(self, m);
 
-            if validate_empty && can_move {
+            if validate_block && can_move && check_block {
                 LineMovement::from(m).all(|pos| self.get_piece(pos).is_none())
             } else { can_move }
         } else {
             false
         }
+    }
+
+    pub fn is_move_possible(&self, m: Move) -> bool {
+        self.is_move_possible_skippable_checks(m, true) 
+    }
+
+    pub fn is_square_attacked(color: Option<PieceColor>) -> bool {
+        todo!("is_square_attacked"); 
     }
 
     pub fn perform_move(&mut self, m: Move) -> bool { // todo more sophisticated movement error indicator
@@ -105,6 +143,17 @@ impl Board {
     ///
     pub fn set(&mut self, square: Square, piece: Option<Box<dyn Piece>>) {
         self.pieces[square.to_index()] = piece; 
+    }
+
+    pub fn squares(&self) -> SquareIterator {
+        SquareIterator::new(self)
+    }
+
+    pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = &Box<dyn Piece>> {
+        self.squares().filter_map(|square| square.as_ref()).filter(move |piece| match color {
+            Some(color) => piece.color() == color,
+            None => true
+        })
     }
 }
 
@@ -165,5 +214,15 @@ mod test {
         assert_eq!(b.perform_move(Move::new(Square::new(6, 6), Square::new(6, 5))), true);
         assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
         //assert_eq!(b.get_piece(Square::new(1, 7)), None);
+    }
+
+    #[test]
+    fn piece_iterator() {
+        let board = Board::new();
+
+        assert_eq!(board.squares().count(), 64);
+        assert_eq!(board.pieces(None).count(), 32);
+        assert_eq!(board.pieces(Some(PieceColor::WHITE)).count(), 16);
+        assert_eq!(board.pieces(Some(PieceColor::BLACK)).count(), 16);
     }
 }
