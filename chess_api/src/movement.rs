@@ -119,20 +119,21 @@ impl Move {
 
 pub struct LineMovement {
     current: Square,
-    end: Square,
-    include_end: bool
+    end: Square
 }
 
 impl LineMovement {
-    fn new(start: Square, end: Square, include_end: bool) -> LineMovement {
+    pub fn new(start: Square, end: Square) -> LineMovement {
         LineMovement {
-            end, current: start,
-            include_end
+            end, current: start
         }
     }
 
     pub fn from(m: Move) -> LineMovement {
-        LineMovement::new(m.start(), m.end(), false)
+        LineMovement {
+            end: m.end(),
+            current: m.start()
+        }
     }
 }
 
@@ -140,10 +141,6 @@ impl Iterator for LineMovement {
     type Item = Square;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current == self.end {
-            return None
-        }
-
         if self.current.x < self.end.x {
             self.current.x += 1;
         } else if self.current.x > self.end.x {
@@ -156,7 +153,7 @@ impl Iterator for LineMovement {
             self.current.y -= 1;
         }
 
-        if self.current == self.end && !self.include_end {
+        if self.current == self.end {
             None
         } else {
             Some(self.current)
@@ -170,7 +167,7 @@ mod test {
 
     #[test]
     fn line_movement() {
-        let mut movement = LineMovement::new(Square::new(6, 6), Square::new(1, 1), false);
+        let mut movement = LineMovement::new(Square::new(6, 6), Square::new(1, 1));
 
         assert_eq!(movement.next(), Some(Square::new(5, 5)));
         assert_eq!(movement.next(), Some(Square::new(4, 4)));
@@ -178,7 +175,7 @@ mod test {
         assert_eq!(movement.next(), Some(Square::new(2, 2)));
         assert_eq!(movement.next(), None);
         
-        let mut movement = LineMovement::new(Square::new(1, 1), Square::new(6, 6), false);
+        let mut movement = LineMovement::new(Square::new(1, 1), Square::new(6, 6));
 
         assert_eq!(movement.next(), Some(Square::new(2, 2)));
         assert_eq!(movement.next(), Some(Square::new(3, 3)));
@@ -186,7 +183,7 @@ mod test {
         assert_eq!(movement.next(), Some(Square::new(5, 5)));
         assert_eq!(movement.next(), None);
 
-        let mut movement = LineMovement::new(Square::new(1, 6), Square::new(1, 1), false);
+        let mut movement = LineMovement::new(Square::new(1, 6), Square::new(1, 1));
 
         assert_eq!(movement.next(), Some(Square::new(1, 5)));
         assert_eq!(movement.next(), Some(Square::new(1, 4)));
@@ -194,7 +191,7 @@ mod test {
         assert_eq!(movement.next(), Some(Square::new(1, 2)));
         assert_eq!(movement.next(), None);
         
-        let mut movement = LineMovement::new(Square::new(1, 6), Square::new(6, 6), false);
+        let mut movement = LineMovement::new(Square::new(1, 6), Square::new(6, 6));
 
         assert_eq!(movement.next(), Some(Square::new(2, 6)));
         assert_eq!(movement.next(), Some(Square::new(3, 6)));
