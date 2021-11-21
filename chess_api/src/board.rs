@@ -21,6 +21,20 @@ pub struct Board {
 }
 
 impl Board {
+    // Constructors
+    /// # Creates new clear board
+    ///
+    /// all of squares on resulting board are None
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    ///
+    /// let board = Board::new_clear();
+    ///
+    /// for (_, piece) in board.squares() {
+    ///     assert!(piece.is_none());
+    /// }
+    /// ```
     pub fn new_clear() -> Board {
         const INIT: Option<Box<dyn Piece>> = None;
 
@@ -30,6 +44,19 @@ impl Board {
     
     }
 
+    /// # Creates new board with standard starting position
+    ///
+    /// ```
+    /// use chess_api::pieces::PieceColor;
+    /// use chess_api::board::Board;
+    ///
+    /// let board = Board::new();
+    ///
+    /// assert_eq!(board.squares().count(), 64);
+    /// assert_eq!(board.pieces(None).count(), 32);
+    /// assert_eq!(board.pieces(Some(PieceColor::WHITE)).count(), 16);
+    /// assert_eq!(board.pieces(Some(PieceColor::BLACK)).count(), 16);
+    /// ```
     pub fn new() -> Board {
         let mut board = Board::new_clear();
 
@@ -59,10 +86,44 @@ impl Board {
         board
     }
 
-    pub fn get_piece(&self, square: Square) -> &Option<Box<dyn Piece>> {
-        &self.pieces[square.to_index()]
+    // basic board state getter functions
+    /// # Returns piece at given square
+    pub fn get_piece(&self, square: Square) -> Option<&Box<dyn Piece>> {
+        self.pieces[square.to_index()].as_ref()
     }
 
+    /// # Returns piece at given index
+    pub fn get_piece_at_index(&self, index: usize) -> Option<&Box<dyn Piece>> {
+        assert!(index < 64);
+        self.pieces[index].as_ref()
+    }
+
+    /// # Returns piece at given square after simulating move
+    pub fn get_piece_after_move(&self, square: Square, m: Move) -> Option<&Box<dyn Piece>> {
+        if square == m.start() {
+            None
+        } else if square == m.end() {
+            self.get_piece(m.start())
+        } else {
+            self.get_piece(m.end())
+        }
+    }
+
+    // advanced board state getters
+    /// # Returns true if given square is attacked by given player
+    pub fn is_square_attacked(_color: PieceColor) -> bool {
+        todo!("Implement is_square_attacked"); 
+    }
+
+    /// # Returns true if given square is attacked by given player after simulating move
+    pub fn is_square_attacked_after_move(_color: PieceColor, _m: Move) -> bool {
+        todo!("Implement is_square_attacked_after_move"); 
+    }
+
+    // move possibility checks
+    /// # Returns if specified move is possible
+    ///
+    /// takes flag that should only be manipulated by board's methods
     fn is_move_possible_skippable_checks(&self, m: Move, check_block: bool) -> bool {
         let (src, dst) = m.to_squares();
 
@@ -86,14 +147,45 @@ impl Board {
         }
     }
 
+    /// # Public wrapper around private board's function
+    ///
+    /// ```
+    /// use chess_api::movement::{Move, Square};
+    /// use chess_api::board::Board;
+    ///
+    /// let board = Board::new();
+    ///
+    /// assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 3))), true);
+    /// assert_eq!(board.is_move_possible(Move::new(Square::new(1, 0), Square::new(1, 3))), false);
+    /// ```
     pub fn is_move_possible(&self, m: Move) -> bool {
         self.is_move_possible_skippable_checks(m, true) 
     }
 
-    pub fn is_square_attacked(color: Option<PieceColor>) -> bool {
-        todo!("is_square_attacked"); 
+    // basic board state changers
+    /// # Sets piece at square
+    ///
+    /// should only be used for setting up custom positions
+    /// not for moving pieces during game
+    ///
+    pub fn set(&mut self, square: Square, piece: Option<Box<dyn Piece>>) {
+        self.pieces[square.to_index()] = piece; 
     }
 
+    // advanced board state changers
+    /// # Performs move after checking if it is possible
+    ///
+    /// ```
+    /// use chess_api::movement::{Move, Square};
+    /// use chess_api::board::Board;
+    ///
+    /// let mut board = Board::new();
+    ///
+    /// board.perform_move(Move::new(Square::new(1, 1), Square::new(1, 3)));
+    ///
+    /// assert_eq!(board.get_piece(Square::new(1, 3)).unwrap().get_character(), 'P');
+    /// assert!(board.get_piece(Square::new(1, 1)).is_none());
+    /// ```
     pub fn perform_move(&mut self, m: Move) -> bool { // todo more sophisticated movement error indicator
         if self.is_move_possible(m) {
             let src = m.start().to_index();
@@ -107,19 +199,23 @@ impl Board {
         }
     }
 
-    /// # Sets piece at square
-    ///
-    /// should only be used for setting up custom positions
-    /// not for moving pieces during game
-    ///
-    pub fn set(&mut self, square: Square, piece: Option<Box<dyn Piece>>) {
-        self.pieces[square.to_index()] = piece; 
-    }
-
-    pub fn squares(&self) -> impl Iterator<Item = (Square, &Option<Box<dyn Piece>>)>{
+    // iterators
+    /// # Returns iterator over every square on the board
+    pub fn squares(&self) -> impl Iterator<Item = (Square, Option<&Box<dyn Piece>>)>{
         (0..64).map(|index| Square::from_index(index)).map(|square| (square, self.get_piece(square)))
     }
 
+    /// # Returns iterator over every piece on the board
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// 
+    /// let board = Board::new();
+    ///
+    /// for (square, piece) in board.pieces(None) {
+    ///     println!("{:?} => {}", square, piece.get_character());
+    /// }
+    /// ```
     pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = (Square, &Box<dyn Piece>)> {
         self.squares().filter_map(|square| match square.1 {
             Some(piece) => Some((square.0, piece)),
