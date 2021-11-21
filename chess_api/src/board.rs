@@ -15,35 +15,6 @@ pub enum MoveFailReason {
 }
 */
 
-pub struct SquareIterator<'a> {
-    board: &'a Board,
-    index: usize
-}
-
-impl<'a> SquareIterator<'a> {
-    fn new(board: &'a Board) -> SquareIterator<'a> {
-        SquareIterator { 
-            board,
-            index: 0
-        }
-    }
-}
-
-impl<'a> Iterator for SquareIterator<'a> {
-    type Item = &'a Option<Box<dyn Piece>>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.index == 64 {
-            None
-        } else {
-            let square = &self.board.pieces[self.index];
-            self.index += 1;
-            Some(square)
-        }
-    }
-}
-
-
 
 pub struct Board {
     pieces: [Option<Box<dyn Piece>>; 64]
@@ -145,13 +116,16 @@ impl Board {
         self.pieces[square.to_index()] = piece; 
     }
 
-    pub fn squares(&self) -> SquareIterator {
-        SquareIterator::new(self)
+    pub fn squares(&self) -> impl Iterator<Item = (Square, &Option<Box<dyn Piece>>)>{
+        (0..64).map(|index| Square::from_index(index)).map(|square| (square, self.get_piece(square)))
     }
 
-    pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = &Box<dyn Piece>> {
-        self.squares().filter_map(|square| square.as_ref()).filter(move |piece| match color {
-            Some(color) => piece.color() == color,
+    pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = (Square, &Box<dyn Piece>)> {
+        self.squares().filter_map(|square| match square.1 {
+            Some(piece) => Some((square.0, piece)),
+            None => None
+        }).filter(move |piece| match color {
+            Some(color) => piece.1.color() == color,
             None => true
         })
     }

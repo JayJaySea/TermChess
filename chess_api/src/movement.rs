@@ -35,6 +35,15 @@ impl Square {
         }
     }
 
+    pub fn from_index(i: usize) -> Square {
+        assert!(i < 64);
+
+        Square {
+            x: (i % 8) as u8,
+            y: (i / 8) as u8
+        }
+    }
+
     pub fn to_uci(&self) -> String {
         format!("{}{}", "abcdefgh".chars().nth(self.x.into()).unwrap(), self.y + 1)
     }
