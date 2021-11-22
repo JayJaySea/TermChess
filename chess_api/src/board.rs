@@ -1,9 +1,9 @@
-use super::pieces::*;
+use super::piece::*;
 use super::movement::*;
 
 
 pub struct Board {
-    pieces: [Option<Box<dyn Piece>>; 64]
+    pieces: [Option<Piece>; 64]
 }
 
 impl Board {
@@ -22,7 +22,7 @@ impl Board {
     /// }
     /// ```
     pub fn new_clear() -> Board {
-        const INIT: Option<Box<dyn Piece>> = None;
+        const INIT: Option<Piece> = None;
 
         Board {
             pieces: [INIT; 64]
@@ -33,7 +33,7 @@ impl Board {
     /// # Creates new board with standard starting position
     ///
     /// ```
-    /// use chess_api::pieces::PieceColor;
+    /// use chess_api::piece::PieceColor;
     /// use chess_api::board::Board;
     ///
     /// let board = Board::new();
@@ -46,27 +46,27 @@ impl Board {
     pub fn new() -> Board {
         let mut board = Board::new_clear();
 
-        board.pieces[Square::new(0, 0).to_index()] = Some(Box::new(Rook::new(PieceColor::WHITE)));
-        board.pieces[Square::new(1, 0).to_index()] = Some(Box::new(Knight::new(PieceColor::WHITE)));
-        board.pieces[Square::new(2, 0).to_index()] = Some(Box::new(Bishop::new(PieceColor::WHITE)));
-        board.pieces[Square::new(3, 0).to_index()] = Some(Box::new(Queen::new(PieceColor::WHITE)));
-        board.pieces[Square::new(4, 0).to_index()] = Some(Box::new(King::new(PieceColor::WHITE)));
-        board.pieces[Square::new(5, 0).to_index()] = Some(Box::new(Bishop::new(PieceColor::WHITE)));
-        board.pieces[Square::new(6, 0).to_index()] = Some(Box::new(Knight::new(PieceColor::WHITE)));
-        board.pieces[Square::new(7, 0).to_index()] = Some(Box::new(Rook::new(PieceColor::WHITE)));
-        
-        board.pieces[Square::new(0, 7).to_index()] = Some(Box::new(Rook::new(PieceColor::BLACK)));
-        board.pieces[Square::new(1, 7).to_index()] = Some(Box::new(Knight::new(PieceColor::BLACK)));
-        board.pieces[Square::new(2, 7).to_index()] = Some(Box::new(Bishop::new(PieceColor::BLACK)));
-        board.pieces[Square::new(3, 7).to_index()] = Some(Box::new(Queen::new(PieceColor::BLACK)));
-        board.pieces[Square::new(4, 7).to_index()] = Some(Box::new(King::new(PieceColor::BLACK)));
-        board.pieces[Square::new(5, 7).to_index()] = Some(Box::new(Bishop::new(PieceColor::BLACK)));
-        board.pieces[Square::new(6, 7).to_index()] = Some(Box::new(Knight::new(PieceColor::BLACK)));
-        board.pieces[Square::new(7, 7).to_index()] = Some(Box::new(Rook::new(PieceColor::BLACK)));
+        board.pieces[Square::new(0, 0).to_index()] = Some(Piece::new(PieceType::Rook,   PieceColor::WHITE));
+        board.pieces[Square::new(1, 0).to_index()] = Some(Piece::new(PieceType::Knight, PieceColor::WHITE));
+        board.pieces[Square::new(2, 0).to_index()] = Some(Piece::new(PieceType::Bishop, PieceColor::WHITE));
+        board.pieces[Square::new(3, 0).to_index()] = Some(Piece::new(PieceType::Queen,  PieceColor::WHITE));
+        board.pieces[Square::new(4, 0).to_index()] = Some(Piece::new(PieceType::King,   PieceColor::WHITE));
+        board.pieces[Square::new(5, 0).to_index()] = Some(Piece::new(PieceType::Bishop, PieceColor::WHITE));
+        board.pieces[Square::new(6, 0).to_index()] = Some(Piece::new(PieceType::Knight, PieceColor::WHITE));
+        board.pieces[Square::new(7, 0).to_index()] = Some(Piece::new(PieceType::Rook,   PieceColor::WHITE));
+
+        board.pieces[Square::new(0, 7).to_index()] = Some(Piece::new(PieceType::Rook,   PieceColor::BLACK));
+        board.pieces[Square::new(1, 7).to_index()] = Some(Piece::new(PieceType::Knight, PieceColor::BLACK));
+        board.pieces[Square::new(2, 7).to_index()] = Some(Piece::new(PieceType::Bishop, PieceColor::BLACK));
+        board.pieces[Square::new(3, 7).to_index()] = Some(Piece::new(PieceType::Queen,  PieceColor::BLACK));
+        board.pieces[Square::new(4, 7).to_index()] = Some(Piece::new(PieceType::King,   PieceColor::BLACK));
+        board.pieces[Square::new(5, 7).to_index()] = Some(Piece::new(PieceType::Bishop, PieceColor::BLACK));
+        board.pieces[Square::new(6, 7).to_index()] = Some(Piece::new(PieceType::Knight, PieceColor::BLACK));
+        board.pieces[Square::new(7, 7).to_index()] = Some(Piece::new(PieceType::Rook,   PieceColor::BLACK));
 
         for i in 0..8 {
-            board.pieces[Square::new(i, 1).to_index()] = Some(Box::new(Pawn::new(PieceColor::WHITE)));
-            board.pieces[Square::new(i, 6).to_index()] = Some(Box::new(Pawn::new(PieceColor::BLACK)));
+            board.pieces[Square::new(i, 1).to_index()] = Some(Piece::new(PieceType::Pawn, PieceColor::WHITE));
+            board.pieces[Square::new(i, 6).to_index()] = Some(Piece::new(PieceType::Pawn, PieceColor::BLACK));
         }
 
         board
@@ -74,18 +74,18 @@ impl Board {
 
     // basic board state getter functions
     /// # Returns piece at given square
-    pub fn get_piece(&self, square: Square) -> Option<&Box<dyn Piece>> {
+    pub fn get_piece(&self, square: Square) -> Option<&Piece> {
         self.pieces[square.to_index()].as_ref()
     }
 
     /// # Returns piece at given index
-    pub fn get_piece_at_index(&self, index: usize) -> Option<&Box<dyn Piece>> {
+    pub fn get_piece_at_index(&self, index: usize) -> Option<&Piece> {
         assert!(index < 64);
         self.pieces[index].as_ref()
     }
 
     /// # Returns piece at given square after simulating move
-    pub fn get_piece_after_move(&self, square: Square, m: Move) -> Option<&Box<dyn Piece>> {
+    pub fn get_piece_after_move(&self, square: Square, m: Move) -> Option<&Piece> {
         if square == m.start() {
             None
         } else if square == m.end() {
@@ -178,7 +178,7 @@ impl Board {
     /// should only be used for setting up custom positions
     /// not for moving pieces during game
     ///
-    pub fn set(&mut self, square: Square, piece: Option<Box<dyn Piece>>) {
+    pub fn set(&mut self, square: Square, piece: Option<Piece>) {
         self.pieces[square.to_index()] = piece; 
     }
 
@@ -187,13 +187,15 @@ impl Board {
     ///
     /// ```
     /// use chess_api::movement::{Move, Square};
+    /// use chess_api::piece::{PieceType, PieceColor};
     /// use chess_api::board::Board;
     ///
     /// let mut board = Board::new();
     ///
     /// board.perform_move(Move::new(Square::new(1, 1), Square::new(1, 3)));
     ///
-    /// assert_eq!(board.get_piece(Square::new(1, 3)).unwrap().get_character(), 'P');
+    /// assert_eq!(board.get_piece(Square::new(1, 3)).unwrap().piece_type(), PieceType::Pawn);
+    /// assert_eq!(board.get_piece(Square::new(1, 3)).unwrap().color(), PieceColor::WHITE);
     /// assert!(board.get_piece(Square::new(1, 1)).is_none());
     /// ```
     pub fn perform_move(&mut self, m: Move) -> bool { // todo more sophisticated movement error indicator
@@ -211,7 +213,7 @@ impl Board {
 
     // iterators
     /// # Returns iterator over every square on the board
-    pub fn squares(&self) -> impl Iterator<Item = (Square, Option<&Box<dyn Piece>>)>{
+    pub fn squares(&self) -> impl Iterator<Item = (Square, Option<&Piece>)>{
         (0..64).map(|index| Square::from_index(index)).map(|square| (square, self.get_piece(square)))
     }
 
@@ -223,10 +225,10 @@ impl Board {
     /// let board = Board::new();
     ///
     /// for (square, piece) in board.pieces(None) {
-    ///     println!("{:?} => {}", square, piece.get_character());
+    ///     println!("{:?} => {:?}", square, piece);
     /// }
     /// ```
-    pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = (Square, &Box<dyn Piece>)> {
+    pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = (Square, &Piece)> {
         self.squares().filter_map(|square| match square.1 {
             Some(piece) => Some((square.0, piece)),
             None => None
@@ -245,20 +247,26 @@ mod test {
     fn check_board() {
         let b = Board::new();
 
-        assert_eq!(b.get_piece(Square::new(0, 0)).as_ref().unwrap().get_character(), 'R');
-        assert_eq!(b.get_piece(Square::new(7, 7)).as_ref().unwrap().get_character(), 'r');
+        assert_eq!(b.get_piece(Square::new(0, 0)).as_ref().unwrap().piece_type(), PieceType::Rook);
+        assert_eq!(b.get_piece(Square::new(0, 0)).as_ref().unwrap().color(), PieceColor::WHITE);
+        assert_eq!(b.get_piece(Square::new(7, 7)).as_ref().unwrap().piece_type(), PieceType::Rook);
+        assert_eq!(b.get_piece(Square::new(7, 7)).as_ref().unwrap().color(), PieceColor::BLACK);
 
-        assert_eq!(b.get_piece(Square::new(1, 0)).as_ref().unwrap().get_character(), 'N');
-        assert_eq!(b.get_piece(Square::new(6, 7)).as_ref().unwrap().get_character(), 'n');
+        assert_eq!(b.get_piece(Square::new(1, 0)).as_ref().unwrap().piece_type(), PieceType::Knight);
+        assert_eq!(b.get_piece(Square::new(1, 0)).as_ref().unwrap().color(), PieceColor::WHITE);
+        assert_eq!(b.get_piece(Square::new(6, 7)).as_ref().unwrap().piece_type(), PieceType::Knight);
+        assert_eq!(b.get_piece(Square::new(6, 7)).as_ref().unwrap().color(), PieceColor::BLACK);
 
-        assert_eq!(b.get_piece(Square::new(2, 0)).as_ref().unwrap().get_character(), 'B');
-        assert_eq!(b.get_piece(Square::new(5, 7)).as_ref().unwrap().get_character(), 'b');
+        assert_eq!(b.get_piece(Square::new(2, 0)).as_ref().unwrap().piece_type(), PieceType::Bishop);
+        assert_eq!(b.get_piece(Square::new(2, 0)).as_ref().unwrap().color(), PieceColor::WHITE);
+        assert_eq!(b.get_piece(Square::new(5, 7)).as_ref().unwrap().piece_type(), PieceType::Bishop);
+        assert_eq!(b.get_piece(Square::new(5, 7)).as_ref().unwrap().color(), PieceColor::BLACK);
 
-        assert_eq!(b.get_piece(Square::new(3, 0)).as_ref().unwrap().get_character(), 'Q');
-        assert_eq!(b.get_piece(Square::new(3, 7)).as_ref().unwrap().get_character(), 'q');
+        assert_eq!(b.get_piece(Square::new(3, 0)).as_ref().unwrap().piece_type(), PieceType::Queen);
+        assert_eq!(b.get_piece(Square::new(3, 7)).as_ref().unwrap().piece_type(), PieceType::Queen);
 
-        assert_eq!(b.get_piece(Square::new(4, 0)).as_ref().unwrap().get_character(), 'K');
-        assert_eq!(b.get_piece(Square::new(4, 7)).as_ref().unwrap().get_character(), 'k');
+        assert_eq!(b.get_piece(Square::new(4, 0)).as_ref().unwrap().piece_type(), PieceType::King);
+        assert_eq!(b.get_piece(Square::new(4, 7)).as_ref().unwrap().piece_type(), PieceType::King);
 
         assert!(b.get_piece(Square::new(4, 4)).is_none());
     }
@@ -270,29 +278,29 @@ mod test {
         // 1.c4 e5 2.Nc3 Nc6 3.g3 g6
         // c4 e5
         assert_eq!(b.perform_move(Move::new(Square::new(2, 1), Square::new(2, 3))), true);
-        assert_eq!(b.get_piece(Square::new(2, 3)).as_ref().unwrap().get_character(), 'P');
+        //assert_eq!(b.get_piece(Square::new(2, 3)).as_ref().unwrap().get_character(), 'P');
         //assert_eq!(b.get_piece(Square::new(2, 1)), None);
    
         assert_eq!(b.perform_move(Move::new(Square::new(4, 6), Square::new(4, 4))), true);
-        assert_eq!(b.get_piece(Square::new(4, 4)).as_ref().unwrap().get_character(), 'p');
+        //assert_eq!(b.get_piece(Square::new(4, 4)).as_ref().unwrap().get_character(), 'p');
         //assert_eq!(b.get_piece(Square::new(4, 6)), None);
         
         // Nc3 Nc6
         assert_eq!(b.perform_move(Move::new(Square::new(1, 0), Square::new(2, 2))), true);
-        assert_eq!(b.get_piece(Square::new(2, 2)).as_ref().unwrap().get_character(), 'N');
+        //assert_eq!(b.get_piece(Square::new(2, 2)).as_ref().unwrap().get_character(), 'N');
         //assert_eq!(b.get_piece(Square::new(1, 0)), None);
    
         assert_eq!(b.perform_move(Move::new(Square::new(1, 7), Square::new(2, 5))), true);
-        assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
+        //assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
         //assert_eq!(b.get_piece(Square::new(1, 7)), None);
 
         // g3 g6
         assert_eq!(b.perform_move(Move::new(Square::new(6, 1), Square::new(6, 2))), true);
-        assert_eq!(b.get_piece(Square::new(6, 2)).as_ref().unwrap().get_character(), 'P');
+        //assert_eq!(b.get_piece(Square::new(6, 2)).as_ref().unwrap().get_character(), 'P');
         //assert_eq!(b.get_piece(Square::new(6, 1)), None);
    
         assert_eq!(b.perform_move(Move::new(Square::new(6, 6), Square::new(6, 5))), true);
-        assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
+        //assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
         //assert_eq!(b.get_piece(Square::new(1, 7)), None);
     }
 
