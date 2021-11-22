@@ -73,50 +73,50 @@ impl Board {
     }
 
     // basic board state getter functions
-    /// # Returns piece at given square
-    pub fn get_piece(&self, square: Square) -> Option<&Piece> {
-        self.pieces[square.to_index()].as_ref()
-    }
-
     /// # Returns piece at given index
-    pub fn get_piece_at_index(&self, index: usize) -> Option<&Piece> {
+    fn get_piece_at_index(&self, index: usize) -> Option<&Piece> {
         assert!(index < 64);
         self.pieces[index].as_ref()
     }
 
-    /// # Returns piece at given square after simulating move
-    pub fn get_piece_after_move(&self, square: Square, m: Move) -> Option<&Piece> {
-        if square == m.start() {
-            None
-        } else if square == m.end() {
-            self.get_piece(m.start())
-        } else {
-            self.get_piece(m.end())
+    /// # Returns piece at given square
+    pub fn get_piece(&self, square: Square) -> Option<&Piece> {
+        self.get_piece_at_index(square.to_index())
+    }
+
+    // move simulating board state getter functions
+    /// # Returns piece at given index after simulating move
+    fn get_piece_at_index_after_move(&self, index: usize, sm: Option<Move>) -> Option<&Piece> {
+        match sm {
+            Some(sm) => {
+                if index == sm.start().to_index() {
+                    None
+                } else if index == sm.end().to_index() {
+                    self.get_piece_at_index(sm.start().to_index())    
+                } else {
+                    self.get_piece_at_index(index)
+                }
+            },
+            None => self.get_piece_at_index(index)
         }
     }
 
-    // advanced board state getters
-    /// # Returns true if given square is attacked by given player
-    pub fn is_square_attacked(&self, square: Square, color: PieceColor) -> bool {
-        self.pieces(Some(color)).any(|(start, _)| self.is_move_possible(Move::new(start, square)))
+    /// # Returns piece at given square after simulating move
+    fn get_piece_after_move(&self, square: Square, sm: Option<Move>) -> Option<&Piece> {
+        self.get_piece_at_index_after_move(square.to_index(), sm)
     }
 
-    /// # Returns true if given square is attacked by given player after simulating move
-    pub fn is_square_attacked_after_move(&self, square: Square, color: PieceColor, m: Move) -> bool {
-        self.pieces(Some(color)).any(|(start, _)| self.is_move_possible_after_move(m, Move::new(start, square)))
-    }
+
+
 
     // move possibility checks
-    /// # Returns if specified move is possible
-    ///
-    /// takes flag that should only be manipulated by board's methods
-    fn is_move_possible_skippable_checks(&self, m: Move, check_block: bool) -> bool {
+    fn is_move_possible_after_move(&self, m: Move, sm: Option<Move>) -> bool {
         let (src, dst) = m.to_squares();
 
-        let source_piece = self.get_piece(src);
-        let destination_piece = self.get_piece(dst);
+        let sorce_piece = self.get_piece_after_move(src, sm);
+        let destination_piece = self.get_piece_after_move(dst, sm);
 
-        if let Some(source_piece) = source_piece {
+        if let Some(source_piece) = sorce_piece {
             if let Some(destination_piece) = destination_piece {
                 if source_piece.color() == destination_piece.color() {
                     return false;
@@ -125,39 +125,15 @@ impl Board {
 
             let (can_move, validate_block) = source_piece.can_move_to(self, m);
 
-            if validate_block && can_move && check_block {
-                LineMovement::from(m).all(|pos| self.get_piece(pos).is_none())
-            } else { can_move }
-        } else {
-            false
-        }
-    }
-
-    // todo test and merge with other function
-    fn is_move_possible_after_move(&self, m1: Move, m2: Move) -> bool {
-        let (src, dst) = m2.to_squares();
-
-        let source_piece = self.get_piece_after_move(src, m1);
-        let destination_piece = self.get_piece_after_move(dst, m1);
-
-        if let Some(source_piece) = source_piece {
-            if let Some(destination_piece) = destination_piece {
-                if source_piece.color() == destination_piece.color() {
-                    return false;
-                }
-            }
-
-            let (can_move, validate_block) = source_piece.can_move_to(self, m2);
-
             if validate_block && can_move {
-                LineMovement::from(m2).all(|pos| self.get_piece_after_move(pos, m1).is_none())
+                LineMovement::from(m).all(|pos| self.get_piece_after_move(pos, sm).is_none())
             } else { can_move }
         } else {
             false
         }
     }
 
-    /// # Public wrapper around private board's function
+    /// # 
     ///
     /// ```
     /// use chess_api::movement::{Move, Square};
@@ -169,8 +145,11 @@ impl Board {
     /// assert_eq!(board.is_move_possible(Move::new(Square::new(1, 0), Square::new(1, 3))), false);
     /// ```
     pub fn is_move_possible(&self, m: Move) -> bool {
-        self.is_move_possible_skippable_checks(m, true) 
+        self.is_move_possible_after_move(m, None) 
     }
+
+
+
 
     // basic board state changers
     /// # Sets piece at square
@@ -212,9 +191,13 @@ impl Board {
     }
 
     // iterators
+    fn squares_after_move(&self, sm: Option<Move>) -> impl Iterator<Item = (Square, Option<&Piece>)> {
+        (0..64).map(|index| Square::from_index(index)).map(move |square| (square, self.get_piece_after_move(square, sm)))
+    }
+
     /// # Returns iterator over every square on the board
-    pub fn squares(&self) -> impl Iterator<Item = (Square, Option<&Piece>)>{
-        (0..64).map(|index| Square::from_index(index)).map(|square| (square, self.get_piece(square)))
+    pub fn squares(&self) -> impl Iterator<Item = (Square, Option<&Piece>)> {
+        self.squares_after_move(None)
     }
 
     /// # Returns iterator over every piece on the board
@@ -228,14 +211,29 @@ impl Board {
     ///     println!("{:?} => {:?}", square, piece);
     /// }
     /// ```
-    pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = (Square, &Piece)> {
-        self.squares().filter_map(|square| match square.1 {
+    fn pieces_after_move(&self, color: Option<PieceColor>, sm: Option<Move>) -> impl Iterator<Item = (Square, &Piece)> {
+        self.squares_after_move(sm).filter_map(|square| match square.1 {
             Some(piece) => Some((square.0, piece)),
             None => None
         }).filter(move |piece| match color {
             Some(color) => piece.1.color() == color,
             None => true
         })
+    }
+
+    pub fn pieces(&self, color: Option<PieceColor>) -> impl Iterator<Item = (Square, &Piece)> {
+        self.pieces_after_move(color, None)
+    }
+
+    // advanced board state getters
+    /// # Returns true if given square is attacked by given player after simulating move
+    fn is_square_attacked_after_move(&self, square: Square, color: PieceColor, sm: Option<Move>) -> bool {
+        self.pieces_after_move(Some(color), sm).any(|(start, _)| self.is_move_possible_after_move(Move::new(start, square), sm))
+    }
+
+    /// # Returns true if given square is attacked by given player
+    pub fn is_square_attacked(&self, square: Square, color: PieceColor) -> bool {
+        self.is_square_attacked_after_move(square, color, None)
     }
 }
 
