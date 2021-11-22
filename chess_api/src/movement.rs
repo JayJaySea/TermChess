@@ -35,6 +35,15 @@ impl Square {
         }
     }
 
+    pub fn from_index(i: usize) -> Square {
+        assert!(i < 64);
+
+        Square {
+            x: (i % 8) as u8,
+            y: (i / 8) as u8
+        }
+    }
+
     pub fn to_uci(&self) -> String {
         format!("{}{}", "abcdefgh".chars().nth(self.x.into()).unwrap(), self.y + 1)
     }
@@ -83,6 +92,12 @@ impl Move {
 
     pub fn min_max_x_y(&self) -> ((u8, u8), (u8, u8)) {
         (self.min_max_x(), self.min_max_y())
+    }
+
+    pub fn to_deltas(&self) -> (u8, u8) {
+        let (min_x, max_x) = self.min_max_x();
+        let (min_y, max_y) = self.min_max_y();
+        (max_x - min_x, max_y - min_y)
     }
 
     pub fn to_squares(&self) -> (Square, Square) {

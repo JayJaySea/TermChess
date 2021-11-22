@@ -1,4 +1,4 @@
 pub mod board;
-pub mod pieces;
+pub mod piece;
 pub mod movement;
 
