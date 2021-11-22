@@ -229,10 +229,27 @@ impl Board {
     // advanced board state getters
     /// # Returns true if given square is attacked by given player after simulating move
     fn is_square_attacked_after_move(&self, square: Square, color: PieceColor, sm: Option<Move>) -> bool {
-        self.pieces_after_move(Some(color), sm).any(|(start, _)| self.is_move_possible_after_move(Move::new(start, square), sm))
+        self.pieces_after_move(Some(color), sm).filter(|(start, _)| *start != square).any(|(start, _)| self.is_move_possible_after_move(Move::new(start, square), sm))
     }
 
     /// # Returns true if given square is attacked by given player
+    ///
+    /// will return false if attacking allied piece
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// use chess_api::movement::Square;
+    /// use chess_api::piece::PieceColor;
+    ///
+    /// let mut board = Board::new();
+    ///
+    /// board.set(Square::new(3, 1), None); // d2 ( in front of white's queen )
+    /// 
+    /// assert_eq!(board.is_square_attacked(Square::new(3, 6), PieceColor::WHITE), true); // d7
+    /// assert_eq!(board.is_square_attacked(Square::new(3, 6), PieceColor::BLACK), false);
+    /// assert_eq!(board.is_square_attacked(Square::new(3, 1), PieceColor::WHITE), true);
+    /// assert_eq!(board.is_square_attacked(Square::new(3, 1), PieceColor::BLACK), false);
+    /// ```
     pub fn is_square_attacked(&self, square: Square, color: PieceColor) -> bool {
         self.is_square_attacked_after_move(square, color, None)
     }
