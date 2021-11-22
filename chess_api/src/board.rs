@@ -117,13 +117,14 @@ impl Board {
         let destination_piece = self.get_piece_after_move(dst, sm);
 
         if let Some(source_piece) = sorce_piece {
-            if let Some(destination_piece) = destination_piece {
+            let dest_ocuppied = if let Some(destination_piece) = destination_piece {
                 if source_piece.color() == destination_piece.color() {
                     return false;
                 }
-            }
+                true
+            } else { false };
 
-            let (can_move, validate_block) = source_piece.can_move_to(self, m);
+            let (can_move, validate_block) = source_piece.can_move_to(m, dest_ocuppied);
 
             if validate_block && can_move {
                 LineMovement::from(m).all(|pos| self.get_piece_after_move(pos, sm).is_none())

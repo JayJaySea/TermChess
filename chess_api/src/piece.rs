@@ -1,5 +1,4 @@
-use crate::movement::{Move, Square};
-use crate::board::Board;
+use crate::movement::Move;
 use std::ops::Not;
 
 
@@ -44,7 +43,7 @@ impl Piece {
         }
     }
 
-    pub fn can_move_to(&self, board: &Board, m: Move) -> (bool, bool) {
+    pub fn can_move_to(&self, m: Move, dest_occupied: bool) -> (bool, bool) {
         let (dx, dy) = m.to_deltas();
 
         match self.piece_type {
@@ -53,22 +52,20 @@ impl Piece {
             PieceType::King => ( dx <= 1 && dy <= 1, false ),
             PieceType::Rook => ( dx == 0 || dy == 0, true ),
             PieceType::Bishop => ( dx == dy, true ),
-            PieceType::Pawn => ({
-                let dest_occupied = board.get_piece(m.end()).is_some();
-
+            PieceType::Pawn => {
                 let ((sx, sy), (ex, ey)) = m.to_coords();
 
-                let (distance, forward) = match self.piece_color {
+                let distance = match self.piece_color {
                     PieceColor::WHITE => {
                         if ey > sy { 
-                            (ey - sy, sy + 1)
+                            ey - sy
                         } else {
                             return (false, false);
                         } 
                     },
                     PieceColor::BLACK => {
                         if ey < sy {
-                            (sy - ey, sy - 1)
+                            sy - ey
                         } else {
                             return (false, false);
                         }
@@ -78,18 +75,18 @@ impl Piece {
 
                 if sx == ex && !dest_occupied {
                     match distance {
-                        1 => true,
-                        2 => !self.moved && board.get_piece(Square::new(ex, forward)).is_none(),
-                        _ => false
+                        1 => (true, false),
+                        2 => (!self.moved, true),
+                        _ => (false, false)
                     }
                 } else if dest_occupied && distance == 1 {
                     if sx > ex {
-                        sx - ex == 1 
+                        (sx - ex == 1, false) 
                     } else if sx < ex {
-                        ex - sx == 1 
-                    } else { false }
-                } else { false } // todo en passant 
-            }, false),
+                        (ex - sx == 1, false) 
+                    } else { (false, false) }
+                } else { (false, false) } // todo en passant 
+            },
         }
     }
 
@@ -105,7 +102,9 @@ impl Piece {
 #[cfg(test)]
 mod test {
     use super::*;
-        
+    use crate::movement::Square;
+    use crate::board::Board;
+
     #[test]
     fn basic_white_pawn_movement() {
         let mut board = Board::new_clear();
