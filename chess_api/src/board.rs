@@ -113,10 +113,10 @@ impl Board {
     fn is_move_possible_after_move(&self, m: Move, sm: Option<Move>) -> bool {
         let (src, dst) = m.to_squares();
 
-        let sorce_piece = self.get_piece_after_move(src, sm);
+        let source_piece = self.get_piece_after_move(src, sm);
         let destination_piece = self.get_piece_after_move(dst, sm);
 
-        if let Some(source_piece) = sorce_piece {
+        if let Some(source_piece) = source_piece {
             let dest_ocuppied = if let Some(destination_piece) = destination_piece {
                 if source_piece.color() == destination_piece.color() {
                     return false;
@@ -126,12 +126,16 @@ impl Board {
 
             let (can_move, validate_block) = source_piece.can_move_to(m, dest_ocuppied);
 
-            if validate_block && can_move {
+            let move_possible = if validate_block && can_move {
                 LineMovement::from(m).all(|pos| self.get_piece_after_move(pos, sm).is_none())
-            } else { can_move }
-        } else {
-            false
-        }
+            } else { can_move };
+
+            if sm.is_some() {
+                move_possible
+            } else if move_possible {
+                !self.is_king_attacked_after_move(source_piece.color(), Some(m))
+            } else { false }
+        } else { false }
     }
 
     /// # 
@@ -253,6 +257,16 @@ impl Board {
     pub fn is_square_attacked(&self, square: Square, color: PieceColor) -> bool {
         self.is_square_attacked_after_move(square, color, None)
     }
+
+    fn is_king_attacked_after_move(&self, color: PieceColor, sm: Option<Move>) -> bool {
+        if let Some((square, _)) = self.pieces_after_move(Some(color), sm).find(|(_, piece)| piece.piece_type() == PieceType::King) {
+            self.is_square_attacked_after_move(square, !color, sm)
+        } else { false }
+    }
+
+    pub fn is_king_attacked(&self, color: PieceColor) -> bool {
+        self.is_king_attacked_after_move(color, None)
+    }
 }
 
 #[cfg(test)]
@@ -328,5 +342,10 @@ mod test {
         assert_eq!(board.pieces(None).count(), 32);
         assert_eq!(board.pieces(Some(PieceColor::WHITE)).count(), 16);
         assert_eq!(board.pieces(Some(PieceColor::BLACK)).count(), 16);
+    }
+
+    #[test]
+    fn white_leaving_king_checked_after_move() {
+        todo!() 
     }
 }
