@@ -346,6 +346,47 @@ mod test {
 
     #[test]
     fn white_leaving_king_checked_after_move() {
-        todo!() 
+        let mut board = Board::new_clear();
+
+        board.set(Square::new(1, 1), Some(Piece::new(PieceType::King, PieceColor::WHITE)));
+        board.set(Square::new(1, 2), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
+        board.set(Square::new(1, 6), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
+
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(6, 2))), false);
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 3))), true);
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 6))), true);
+
+        board.set(Square::new(1, 2), None);
+        
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), false);
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(2, 2))), true);
+
+        board.set(Square::new(1, 6), None);
+        board.set(Square::new(1, 2), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
+
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), true);
+    }
+
+    #[test]
+    fn black_leaving_king_checked_after_move() {
+        let mut board = Board::new_clear();
+
+        board.set(Square::new(1, 1), Some(Piece::new(PieceType::King, PieceColor::BLACK)));
+        board.set(Square::new(1, 2), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
+        board.set(Square::new(1, 6), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
+
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(6, 2))), false);
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 3))), true);
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 6))), true);
+
+        board.set(Square::new(1, 2), None);
+        
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), false);
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(2, 2))), true);
+
+        board.set(Square::new(1, 6), None);
+        board.set(Square::new(1, 2), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
+
+        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), true);
     }
 }
