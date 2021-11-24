@@ -2,6 +2,16 @@ use super::piece::*;
 use super::movement::*;
 
 
+#[derive(Debug, PartialEq)]
+pub enum MoveFailReason {
+    NoSourcePiece, FriendlyFire, IllegalMove, KingAttacked
+}
+
+#[derive(Debug, PartialEq)]
+pub enum PostMoveState {
+    Normal, Check, Checkmate, Stelemate
+}
+
 pub struct Board {
     pieces: [Option<Piece>; 64]
 }
@@ -110,7 +120,7 @@ impl Board {
 
 
     // move possibility checks
-    fn is_move_possible_after_move(&self, m: Move, sm: Option<Move>) -> bool {
+    fn check_move_possibility_after_move(&self, m: Move, sm: Option<Move>) -> Result<(), MoveFailReason> {
         let (src, dst) = m.to_squares();
 
         let source_piece = self.get_piece_after_move(src, sm);
@@ -119,7 +129,7 @@ impl Board {
         if let Some(source_piece) = source_piece {
             let dest_ocuppied = if let Some(destination_piece) = destination_piece {
                 if source_piece.color() == destination_piece.color() {
-                    return false;
+                    return Err(MoveFailReason::FriendlyFire);
                 }
                 true
             } else { false };
@@ -130,12 +140,14 @@ impl Board {
                 LineMovement::from(m).all(|pos| self.get_piece_after_move(pos, sm).is_none())
             } else { can_move };
 
-            if sm.is_some() {
-                move_possible
-            } else if move_possible {
-                !self.is_king_attacked_after_move(source_piece.color(), Some(m))
-            } else { false }
-        } else { false }
+            if move_possible {
+                if sm.is_some() {
+                    Ok(())
+                } else if self.is_king_attacked_after_move(source_piece.color(), Some(m)) {
+                    Err(MoveFailReason::KingAttacked)
+                } else { Ok(()) }
+            } else { Err(MoveFailReason::IllegalMove) }
+        } else { Err(MoveFailReason::NoSourcePiece) }
     }
 
     /// # 
@@ -146,11 +158,11 @@ impl Board {
     ///
     /// let board = Board::new();
     ///
-    /// assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 3))), true);
-    /// assert_eq!(board.is_move_possible(Move::new(Square::new(1, 0), Square::new(1, 3))), false);
+    /// assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 3))).is_ok(), true);
+    /// assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 0), Square::new(1, 3))).is_ok(), false);
     /// ```
-    pub fn is_move_possible(&self, m: Move) -> bool {
-        self.is_move_possible_after_move(m, None) 
+    pub fn check_move_possibility(&self, m: Move) -> Result<(), MoveFailReason> {
+        self.check_move_possibility_after_move(m, None) 
     }
 
 
@@ -182,16 +194,30 @@ impl Board {
     /// assert_eq!(board.get_piece(Square::new(1, 3)).unwrap().color(), PieceColor::WHITE);
     /// assert!(board.get_piece(Square::new(1, 1)).is_none());
     /// ```
-    pub fn perform_move(&mut self, m: Move) -> bool { // todo more sophisticated movement error indicator
-        if self.is_move_possible(m) {
-            let src = m.start().to_index();
-            let dst = m.end().to_index();
+    pub fn perform_move(&mut self, m: Move) -> Result<PostMoveState, MoveFailReason> {
+        match self.check_move_possibility(m) {
+            Ok(_) => {
+                let src = m.start().to_index();
+                let dst = m.end().to_index();
 
-            self.pieces[dst] = self.pieces[src].take();
+                self.pieces[dst] = self.pieces[src].take();
+                self.pieces[dst].as_mut().unwrap().move_piece();
 
-            true
-        } else {
-            false
+                let next_color = !self.pieces[dst].as_ref().unwrap().color();
+                let king_attacked = self.is_king_attacked(next_color);
+                let has_moves = self.all_possible_moves(Some(next_color)).next().is_some();
+
+                if king_attacked && has_moves {
+                    Ok(PostMoveState::Check)
+                } else if king_attacked {
+                    Ok(PostMoveState::Checkmate)
+                } else if has_moves {
+                    Ok(PostMoveState::Normal)
+                } else {
+                    Ok(PostMoveState::Stelemate)
+                }
+            },
+            Err(e) => Err(e)
         }
     }
 
@@ -233,12 +259,12 @@ impl Board {
     // advanced board state getters
     /// # Returns true if given square is attacked by given player after simulating move
     fn is_square_attacked_after_move(&self, square: Square, color: PieceColor, sm: Option<Move>) -> bool {
-        self.pieces_after_move(Some(color), sm).filter(|(start, _)| *start != square).any(|(start, _)| self.is_move_possible_after_move(Move::new(start, square), sm))
+        self.pieces_after_move(Some(color), sm).filter(|(start, _)| *start != square).any(|(start, _)| self.check_move_possibility_after_move(Move::new(start, square), sm).is_ok())
     }
 
     /// # Returns true if given square is attacked by given player
     ///
-    /// will return false if attacking allied piece
+    /// will return false if attacked only by allied piece
     ///
     /// ```
     /// use chess_api::board::Board;
@@ -258,14 +284,76 @@ impl Board {
         self.is_square_attacked_after_move(square, color, None)
     }
 
+    /// # If king is attacked returns true
     fn is_king_attacked_after_move(&self, color: PieceColor, sm: Option<Move>) -> bool {
         if let Some((square, _)) = self.pieces_after_move(Some(color), sm).find(|(_, piece)| piece.piece_type() == PieceType::King) {
             self.is_square_attacked_after_move(square, !color, sm)
         } else { false }
     }
 
+    /// # If king is attacked returns true
+    ///
+    /// will return false if attacked only by allied piece
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// use chess_api::movement::{Move, Square};
+    /// use chess_api::piece::PieceColor;
+    ///
+    /// let mut board = Board::new();
+    ///
+    /// assert!(board.perform_move(Move::new(Square::new(4, 1), Square::new(4, 3))).is_ok()); // e4
+    /// assert!(board.perform_move(Move::new(Square::new(5, 6), Square::new(5, 4))).is_ok()); // f6
+    /// assert!(board.perform_move(Move::new(Square::new(3, 0), Square::new(7, 4))).is_ok()); // Qh5
+    ///
+    /// assert_eq!(board.is_king_attacked(PieceColor::WHITE), false);
+    /// assert_eq!(board.is_king_attacked(PieceColor::BLACK), true);
+    /// ```
     pub fn is_king_attacked(&self, color: PieceColor) -> bool {
         self.is_king_attacked_after_move(color, None)
+    }
+
+    /// # Returns iterator for every possible move from given square
+    ///
+    /// move order is not defined and may change in future
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// use chess_api::movement::{Move, Square};
+    /// use chess_api::piece::PieceColor;
+    ///
+    /// let mut board = Board::new();
+    ///
+    /// assert!(board.perform_move(Move::new(Square::new(4, 1), Square::new(4, 3))).is_ok()); // e4
+    /// 
+    /// assert_eq!(board.all_possible_moves_from_square(Square::new(3, 0)).count(), 4); // queen
+    /// assert_eq!(board.all_possible_moves_from_square(Square::new(4, 3)).count(), 1);
+    /// assert_eq!(board.all_possible_moves_from_square(Square::new(3, 1)).count(), 2);
+    /// ```
+
+    pub fn all_possible_moves_from_square<'a>(&'a self, start: Square) -> impl Iterator<Item = Move> + 'a {
+        // todo optimize, piece should give subset of board's squares to test for move possibility
+        // fx: for pawn we are testing all 64 destination squares but we should only test 4
+        self.squares()
+            .filter_map(move |(end, _)| if end == start { None } else { Some(end) })
+            .map(move |end| Move::new(start, end))
+            .filter(|m| self.check_move_possibility(*m).is_ok())
+    }
+
+    /// # Returns iterator for every possoble move by given color
+    ///
+    /// move order is not defined and may change in future
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// use chess_api::piece::PieceColor;
+    ///
+    /// let board = Board::new();
+    ///
+    /// assert_eq!(board.all_possible_moves(None).count(), 40);
+    /// ```
+    pub fn all_possible_moves<'a>(&'a self, color: Option<PieceColor>) -> impl Iterator<Item = Move> +'a {
+        self.pieces(color).flat_map(|(square, _)| self.all_possible_moves_from_square(square))
     }
 }
 
@@ -307,31 +395,16 @@ mod test {
 
         // 1.c4 e5 2.Nc3 Nc6 3.g3 g6
         // c4 e5
-        assert_eq!(b.perform_move(Move::new(Square::new(2, 1), Square::new(2, 3))), true);
-        //assert_eq!(b.get_piece(Square::new(2, 3)).as_ref().unwrap().get_character(), 'P');
-        //assert_eq!(b.get_piece(Square::new(2, 1)), None);
-   
-        assert_eq!(b.perform_move(Move::new(Square::new(4, 6), Square::new(4, 4))), true);
-        //assert_eq!(b.get_piece(Square::new(4, 4)).as_ref().unwrap().get_character(), 'p');
-        //assert_eq!(b.get_piece(Square::new(4, 6)), None);
+        assert_eq!(b.perform_move(Move::new(Square::new(2, 1), Square::new(2, 3))).is_ok(), true);
+        assert_eq!(b.perform_move(Move::new(Square::new(4, 6), Square::new(4, 4))).is_ok(), true);
         
         // Nc3 Nc6
-        assert_eq!(b.perform_move(Move::new(Square::new(1, 0), Square::new(2, 2))), true);
-        //assert_eq!(b.get_piece(Square::new(2, 2)).as_ref().unwrap().get_character(), 'N');
-        //assert_eq!(b.get_piece(Square::new(1, 0)), None);
-   
-        assert_eq!(b.perform_move(Move::new(Square::new(1, 7), Square::new(2, 5))), true);
-        //assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
-        //assert_eq!(b.get_piece(Square::new(1, 7)), None);
+        assert_eq!(b.perform_move(Move::new(Square::new(1, 0), Square::new(2, 2))).is_ok(), true);
+        assert_eq!(b.perform_move(Move::new(Square::new(1, 7), Square::new(2, 5))).is_ok(), true);
 
         // g3 g6
-        assert_eq!(b.perform_move(Move::new(Square::new(6, 1), Square::new(6, 2))), true);
-        //assert_eq!(b.get_piece(Square::new(6, 2)).as_ref().unwrap().get_character(), 'P');
-        //assert_eq!(b.get_piece(Square::new(6, 1)), None);
-   
-        assert_eq!(b.perform_move(Move::new(Square::new(6, 6), Square::new(6, 5))), true);
-        //assert_eq!(b.get_piece(Square::new(2, 5)).as_ref().unwrap().get_character(), 'n');
-        //assert_eq!(b.get_piece(Square::new(1, 7)), None);
+        assert_eq!(b.perform_move(Move::new(Square::new(6, 1), Square::new(6, 2))).is_ok(), true);
+        assert_eq!(b.perform_move(Move::new(Square::new(6, 6), Square::new(6, 5))).is_ok(), true);
     }
 
     #[test]
@@ -352,19 +425,19 @@ mod test {
         board.set(Square::new(1, 2), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
         board.set(Square::new(1, 6), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(6, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 3))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 6))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 2), Square::new(6, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 2), Square::new(1, 3))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 2), Square::new(1, 6))).is_ok(), true);
 
         board.set(Square::new(1, 2), None);
         
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(2, 2))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(2, 2))).is_ok(), true);
 
         board.set(Square::new(1, 6), None);
         board.set(Square::new(1, 2), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 2))).is_ok(), true);
     }
 
     #[test]
@@ -375,18 +448,91 @@ mod test {
         board.set(Square::new(1, 2), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
         board.set(Square::new(1, 6), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(6, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 3))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 2), Square::new(1, 6))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 2), Square::new(6, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 2), Square::new(1, 3))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 2), Square::new(1, 6))).is_ok(), true);
 
         board.set(Square::new(1, 2), None);
         
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(2, 2))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(2, 2))).is_ok(), true);
 
         board.set(Square::new(1, 6), None);
         board.set(Square::new(1, 2), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 2))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 2))).is_ok(), true);
+    }
+
+    #[test]
+    fn err_no_source_piece() {
+        let board = Board::new_clear();
+    
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 2))).err().unwrap(), MoveFailReason::NoSourcePiece);
+    }
+
+    #[test]
+    fn err_friendly_fire() {
+        let mut board = Board::new_clear();
+
+        board.set(Square::new(1, 1), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
+        board.set(Square::new(6, 1), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
+    
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(6, 1))).err().unwrap(), MoveFailReason::FriendlyFire);
+    }
+
+    #[test]
+    fn err_illegal_move() {
+        let board = Board::new();
+
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 6))).err().unwrap(), MoveFailReason::IllegalMove);
+    }
+
+    #[test]
+    fn err_king_attacked() {
+        let mut board = Board::new_clear();
+
+        board.set(Square::new(1, 1), Some(Piece::new(PieceType::King, PieceColor::WHITE)));
+        board.set(Square::new(2, 1), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
+
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(0, 1))).err().unwrap(), MoveFailReason::KingAttacked);
+    }
+
+    #[test]
+    fn post_move_normal() {
+        let mut board = Board::new();
+
+        assert_eq!(board.perform_move(Move::new(Square::new(2, 1), Square::new(2, 3))).ok().unwrap(), PostMoveState::Normal);
+    }
+
+    #[test]
+    fn post_move_check() {
+        let mut board = Board::new_clear();
+
+        board.set(Square::new(1, 1), Some(Piece::new(PieceType::King, PieceColor::WHITE)));
+        board.set(Square::new(5, 5), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
+
+        assert_eq!(board.perform_move(Move::new(Square::new(5, 5), Square::new(5, 1))).ok().unwrap(), PostMoveState::Check);
+    }
+
+    #[test]
+    fn post_move_stelemate() {
+        let mut board = Board::new_clear();
+
+        board.set(Square::new(0, 1), Some(Piece::new(PieceType::King, PieceColor::WHITE)));
+        board.set(Square::new(2, 1), Some(Piece::new(PieceType::Knight, PieceColor::BLACK)));
+        board.set(Square::new(1, 7), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
+
+        assert_eq!(board.perform_move(Move::new(Square::new(1, 7), Square::new(1, 6))).ok().unwrap(), PostMoveState::Stelemate);
+    }
+
+    #[test]
+    fn post_move_checkmate() {
+        let mut board = Board::new_clear();
+
+        board.set(Square::new(0, 0), Some(Piece::new(PieceType::King, PieceColor::BLACK)));
+        board.set(Square::new(7, 1), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
+        board.set(Square::new(0, 2), Some(Piece::new(PieceType::King, PieceColor::WHITE)));
+
+        assert_eq!(board.perform_move(Move::new(Square::new(7, 1), Square::new(7, 0))).ok().unwrap(), PostMoveState::Checkmate);
     }
 }

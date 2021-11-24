@@ -97,6 +97,10 @@ impl Piece {
     pub fn piece_type(&self) -> PieceType {
         self.piece_type
     }
+
+    pub fn move_piece(&mut self) {
+        self.moved = true;
+    }    
 }
 
 #[cfg(test)]
@@ -111,17 +115,17 @@ mod test {
 
         board.set(Square::new(3, 3), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
     
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 5))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 5))).is_ok(), true);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 2))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 2))).is_ok(), false);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 4))).is_ok(), false);
     }
 
 
@@ -131,17 +135,17 @@ mod test {
 
         board.set(Square::new(3, 3), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
     
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 1))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 1))).is_ok(), true);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 4))).is_ok(), false);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 4))).is_ok(), false);
     }
 
     #[test]
@@ -151,14 +155,14 @@ mod test {
         board.set(Square::new(3, 3), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
         board.set(Square::new(3, 5), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
     
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 5))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 5))).is_ok(), false);
 
         board.set(Square::new(3, 3), None);
         board.set(Square::new(3, 4), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 5))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 5))).is_ok(), false);
     }
 
     #[test]
@@ -168,14 +172,14 @@ mod test {
         board.set(Square::new(3, 3), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
         board.set(Square::new(3, 1), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
     
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 1))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 1))).is_ok(), false);
 
         board.set(Square::new(3, 3), None);
         board.set(Square::new(3, 2), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 1))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 1))).is_ok(), false);
     }
 
     #[test]
@@ -194,16 +198,16 @@ mod test {
         board.set(Square::new(5, 4), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
         board.set(Square::new(1, 4), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 5))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 5))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(1, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 5))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 5))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(1, 4))).is_ok(), false);
     }
 
     #[test]
@@ -222,16 +226,16 @@ mod test {
         board.set(Square::new(5, 2), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
         board.set(Square::new(1, 2), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 1))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 1))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(1, 2))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 1))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 1))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(1, 2))).is_ok(), false);
     }
 
     #[test]
@@ -242,8 +246,8 @@ mod test {
         board.set(Square::new(4, 4), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
         board.set(Square::new(2, 4), Some(Piece::new(PieceType::Pawn, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), false);
     }
 
     #[test]
@@ -254,8 +258,8 @@ mod test {
         board.set(Square::new(4, 2), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
         board.set(Square::new(2, 2), Some(Piece::new(PieceType::Pawn, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), false);
     }
 
     #[test]
@@ -264,25 +268,25 @@ mod test {
 
         board.set(Square::new(3, 3), Some(Piece::new(PieceType::Bishop, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), true);
         
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), true);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 3))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 3))).is_ok(), false);
         
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 6))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 6))).is_ok(), false);
     }
 
     #[test]
@@ -296,10 +300,10 @@ mod test {
         board.set(Square::new(4, 2), Some(Piece::new(PieceType::Bishop, PieceColor::BLACK)));
         board.set(Square::new(4, 4), Some(Piece::new(PieceType::Bishop, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), true);
 
         let mut board = Board::new_clear();
 
@@ -310,10 +314,10 @@ mod test {
         board.set(Square::new(6, 0), Some(Piece::new(PieceType::Bishop, PieceColor::BLACK)));
         board.set(Square::new(7, 7), Some(Piece::new(PieceType::Bishop, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), true);
     }
 
     #[test]
@@ -327,10 +331,10 @@ mod test {
         board.set(Square::new(4, 2), Some(Piece::new(PieceType::Bishop, PieceColor::WHITE)));
         board.set(Square::new(4, 4), Some(Piece::new(PieceType::Bishop, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), false);
 
         let mut board = Board::new_clear();
 
@@ -341,10 +345,10 @@ mod test {
         board.set(Square::new(6, 0), Some(Piece::new(PieceType::Bishop, PieceColor::WHITE)));
         board.set(Square::new(7, 7), Some(Piece::new(PieceType::Bishop, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), false);
     }
 
     #[test]
@@ -358,10 +362,10 @@ mod test {
         board.set(Square::new(4, 2), Some(Piece::new(PieceType::Bishop, PieceColor::BLACK)));
         board.set(Square::new(4, 4), Some(Piece::new(PieceType::Bishop, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), false);
     }
 
     #[test]
@@ -370,23 +374,23 @@ mod test {
 
         board.set(Square::new(3, 3), Some(Piece::new(PieceType::Knight, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 1))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(1, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 1))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(5, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(1, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 5))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 1))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(1, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 1))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(5, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(1, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 5))).is_ok(), true);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(3, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 3))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(3, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 3))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), false);
     }
 
     #[test]
@@ -395,10 +399,10 @@ mod test {
 
         board.set(Square::new(6, 6), Some(Piece::new(PieceType::Knight, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(6, 6), Square::new(4, 7))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(6, 6), Square::new(4, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(6, 6), Square::new(5, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(6, 6), Square::new(7, 4))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(6, 6), Square::new(4, 7))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(6, 6), Square::new(4, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(6, 6), Square::new(5, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(6, 6), Square::new(7, 4))).is_ok(), true);
     }
 
     #[test]
@@ -407,10 +411,10 @@ mod test {
 
         board.set(Square::new(1, 1), Some(Piece::new(PieceType::Knight, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(0, 3))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(2, 3))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(3, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(3, 2))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(0, 3))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(2, 3))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(3, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(3, 2))).is_ok(), true);
     }
 
     #[test]
@@ -419,17 +423,17 @@ mod test {
 
         board.set(Square::new(1, 1), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
         
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 1))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 1))).is_ok(), true);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 2))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 2))).is_ok(), false);
 
         board.set(Square::new(1, 1), None);
 
         board.set(Square::new(5, 5), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(5, 5), Square::new(1, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(5, 5), Square::new(5, 1))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(5, 5), Square::new(1, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(5, 5), Square::new(5, 1))).is_ok(), true);
         
     }
 
@@ -439,20 +443,20 @@ mod test {
 
         board.set(Square::new(3, 3), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), true);
         
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), true);
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 6))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 6))).is_ok(), false);
     }
 
     #[test]
@@ -463,8 +467,8 @@ mod test {
         board.set(Square::new(1, 5), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
         board.set(Square::new(5, 1), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 1))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 1))).is_ok(), true);
     }
 
     #[test]
@@ -478,10 +482,10 @@ mod test {
         board.set(Square::new(4, 2), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
         board.set(Square::new(4, 4), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), true);
 
         let mut board = Board::new_clear();
 
@@ -492,10 +496,10 @@ mod test {
         board.set(Square::new(6, 0), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
         board.set(Square::new(7, 7), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), true);
     }
    
     #[test]
@@ -506,8 +510,8 @@ mod test {
         board.set(Square::new(1, 5), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
         board.set(Square::new(5, 1), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 5))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 1))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 5))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 1))).is_ok(), false);
     }
 
     #[test]
@@ -521,10 +525,10 @@ mod test {
         board.set(Square::new(4, 2), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
         board.set(Square::new(4, 4), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(2, 4))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 2))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(4, 4))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(2, 4))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 2))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(4, 4))).is_ok(), false);
 
         let mut board = Board::new_clear();
 
@@ -535,10 +539,10 @@ mod test {
         board.set(Square::new(6, 0), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
         board.set(Square::new(7, 7), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), false);
     }
 
     #[test]
@@ -549,8 +553,8 @@ mod test {
         board.set(Square::new(1, 5), Some(Piece::new(PieceType::Queen, PieceColor::WHITE)));
         board.set(Square::new(5, 1), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
     
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(6, 1))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(6, 1))).is_ok(), false);
     }
 
     #[test]
@@ -564,10 +568,10 @@ mod test {
         board.set(Square::new(4, 2), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
         board.set(Square::new(4, 4), Some(Piece::new(PieceType::Queen, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(0, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(6, 0))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(3, 3), Square::new(7, 7))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(0, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(6, 0))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(3, 3), Square::new(7, 7))).is_ok(), false);
     }
 
     #[test]
@@ -576,18 +580,18 @@ mod test {
 
         board.set(Square::new(1, 1), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
         
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 1))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 1))).is_ok(), true);
    
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 5))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 2))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 5))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 2))).is_ok(), false);
 
         board.set(Square::new(1, 1), None);
 
         board.set(Square::new(5, 5), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(5, 5), Square::new(1, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(5, 5), Square::new(5, 1))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(5, 5), Square::new(1, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(5, 5), Square::new(5, 1))).is_ok(), true);
     }
 
     #[test]
@@ -598,8 +602,8 @@ mod test {
         board.set(Square::new(1, 5), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
         board.set(Square::new(5, 1), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 5))), true);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 1))), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 5))).is_ok(), true);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 1))).is_ok(), true);
     }
 
     #[test]
@@ -610,8 +614,8 @@ mod test {
         board.set(Square::new(1, 5), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
         board.set(Square::new(5, 1), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
 
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 5))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(5, 1))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 5))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(5, 1))).is_ok(), false);
     }
 
     #[test]
@@ -622,7 +626,7 @@ mod test {
         board.set(Square::new(1, 5), Some(Piece::new(PieceType::Rook, PieceColor::WHITE)));
         board.set(Square::new(5, 1), Some(Piece::new(PieceType::Rook, PieceColor::BLACK)));
     
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(1, 6))), false);
-        assert_eq!(board.is_move_possible(Move::new(Square::new(1, 1), Square::new(6, 1))), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(1, 6))).is_ok(), false);
+        assert_eq!(board.check_move_possibility(Move::new(Square::new(1, 1), Square::new(6, 1))).is_ok(), false);
     }
 }
