@@ -97,6 +97,10 @@ impl Piece {
     pub fn piece_type(&self) -> PieceType {
         self.piece_type
     }
+
+    pub fn move_piece(&mut self) {
+        self.moved = true;
+    }    
 }
 
 #[cfg(test)]

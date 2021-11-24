@@ -188,6 +188,7 @@ impl Board {
             let dst = m.end().to_index();
 
             self.pieces[dst] = self.pieces[src].take();
+            self.pieces[dst].as_mut().unwrap().move_piece();
 
             true
         } else {
@@ -238,7 +239,7 @@ impl Board {
 
     /// # Returns true if given square is attacked by given player
     ///
-    /// will return false if attacking allied piece
+    /// will return false if attacked only by allied piece
     ///
     /// ```
     /// use chess_api::board::Board;
@@ -258,14 +259,72 @@ impl Board {
         self.is_square_attacked_after_move(square, color, None)
     }
 
+    /// # If king is attacked returns true
     fn is_king_attacked_after_move(&self, color: PieceColor, sm: Option<Move>) -> bool {
         if let Some((square, _)) = self.pieces_after_move(Some(color), sm).find(|(_, piece)| piece.piece_type() == PieceType::King) {
             self.is_square_attacked_after_move(square, !color, sm)
         } else { false }
     }
 
+    /// # If king is attacked returns true
+    ///
+    /// will return false if attacked only by allied piece
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// use chess_api::movement::{Move, Square};
+    /// use chess_api::piece::PieceColor;
+    ///
+    /// let mut board = Board::new();
+    ///
+    /// assert!(board.perform_move(Move::new(Square::new(4, 1), Square::new(4, 3)))); // e4
+    /// assert!(board.perform_move(Move::new(Square::new(5, 6), Square::new(5, 4)))); // f6
+    /// assert!(board.perform_move(Move::new(Square::new(3, 0), Square::new(7, 4)))); // Qh5
+    ///
+    /// assert_eq!(board.is_king_attacked(PieceColor::WHITE), false);
+    /// assert_eq!(board.is_king_attacked(PieceColor::BLACK), true);
+    /// ```
     pub fn is_king_attacked(&self, color: PieceColor) -> bool {
         self.is_king_attacked_after_move(color, None)
+    }
+
+    /// # Returns iterator for every possible move from given square
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// use chess_api::movement::{Move, Square};
+    /// use chess_api::piece::PieceColor;
+    ///
+    /// let mut board = Board::new();
+    ///
+    /// assert!(board.perform_move(Move::new(Square::new(4, 1), Square::new(4, 3)))); // e4
+    /// 
+    /// assert_eq!(board.all_possible_moves_from_square(Square::new(3, 0)).count(), 4); // queen
+    /// assert_eq!(board.all_possible_moves_from_square(Square::new(4, 3)).count(), 1);
+    /// assert_eq!(board.all_possible_moves_from_square(Square::new(3, 1)).count(), 2);
+    /// ```
+
+    pub fn all_possible_moves_from_square<'a>(&'a self, start: Square) -> impl Iterator<Item = Move> + 'a {
+        // todo optimize, piece should give subset of board's squares to test for move possibility
+        // fx: for pawn we are testing all 64 destination squares but we should only test 4
+        self.squares()
+            .filter_map(move |(end, _)| if end == start { None } else { Some(end) })
+            .map(move |end| Move::new(start, end))
+            .filter(|m| self.is_move_possible(*m))
+    }
+
+    /// # Returns iterator for every possoble move by given color
+    ///
+    /// ```
+    /// use chess_api::board::Board;
+    /// use chess_api::piece::PieceColor;
+    ///
+    /// let board = Board::new();
+    ///
+    /// assert_eq!(board.all_possible_moves(None).count(), 40);
+    /// ```
+    pub fn all_possible_moves<'a>(&'a self, color: Option<PieceColor>) -> impl Iterator<Item = Move> +'a {
+        self.pieces(color).flat_map(|(square, _)| self.all_possible_moves_from_square(square))
     }
 }
 
