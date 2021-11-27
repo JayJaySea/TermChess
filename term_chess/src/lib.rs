@@ -1,5 +1,5 @@
 use std::io;
-use std::io::{ stdin, stdout, Read, Write };
+use std::io::{ Write };
 
 pub mod menu {
     pub mod main_menu;
