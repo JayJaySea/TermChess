@@ -115,6 +115,10 @@ impl Connection {
     }
 
     pub fn stream_state(&self) {
+        // https://lichess.org/api/stream/game/{id} 
+        // will be better due to sending less information
+        // and more uniform format 
+
         let game_id = self.game_id.as_ref().unwrap();
 
         let resp = ureq::get(format!("https://lichess.org/api/board/game/stream/{}", game_id).as_str())
