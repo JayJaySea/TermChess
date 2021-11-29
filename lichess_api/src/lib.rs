@@ -1,3 +1,5 @@
+pub mod connection;
+
 use serde::Deserialize;
 use std::io::{BufRead, self};
 use std::fs;
@@ -243,10 +245,10 @@ impl Connection {
 
 
 pub fn test() {
-    let token = fs::read_to_string("/home/krzysztof1222/.config/lichess_token").expect("Failed to read api token");
-    let mut connection = Connection::new(&token);
-    connection.get_account();
-    connection.get_games();
+    //let token = fs::read_to_string("/home/krzysztof1222/.config/lichess_token").expect("Failed to read api token");
+    //let mut connection = Connection::new(&token);
+    //connection.get_account();
+    //connection.get_games();
     //connection.stream_state();
     //connection.perform_move(Move::new(Square::new(4, 0), Square::new(0, 0)));
 
@@ -254,9 +256,14 @@ pub fn test() {
    // connection.abort_game();
    // connection.resign_game();
 
-    connection.get_challenges();
-    connection.create_challenge("Xkali");
+    //connection.get_challenges();
+    //connection.create_challenge("Xkali");
     // connection.accept_challenge("xd")
     
-    connection.open_challenge();
+    //connection.open_challenge();
+
+    let conn = connection::Connection::authorize();
+
+    // requires authorization
+    println!("{}", conn.create_reqest("GET", "https://lichess.org/api/challenge").call().unwrap().into_string().unwrap());
 }
