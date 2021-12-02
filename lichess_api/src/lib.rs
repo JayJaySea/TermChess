@@ -1,4 +1,7 @@
 pub mod connection;
+pub mod authorization;
+pub mod challenges;
+pub mod game;
 
 use serde::Deserialize;
 use std::io::{BufRead, self};
@@ -116,53 +119,6 @@ impl Connection {
         }
     }
 
-    pub fn stream_state(&self) {
-        // https://lichess.org/api/stream/game/{id} 
-        // will be better due to sending less information
-        // and more uniform format 
-
-        let game_id = self.game_id.as_ref().unwrap();
-
-        let resp = ureq::get(format!("https://lichess.org/api/board/game/stream/{}", game_id).as_str())
-           .set("Authorization", &self.authorization)
-           .call().unwrap();
-
-        let reader = resp.into_reader();
-        let lines = io::BufReader::new(reader).lines();
-
-        for line in lines {
-            match line {
-                Ok(line) => {
-                    if line.len() == 0 {
-                        continue;
-                    }
-
-                    let state: GameStreamType = match serde_json::from_str(&line) {
-                        Ok(state) => state,
-                        Err(_) => break
-                    };
-                
-                    match state.stream_type.as_str() {
-                        "gameFull" => {
-                            let state: FullGame = serde_json::from_str(&line).unwrap();
-                            println!("{:?}", state);
-                        },
-                        "gameState" => {
-                            let state: GameState = serde_json::from_str(&line).unwrap();
-                            println!("{:?}", state);
-                        },
-                        "chatLine" => {
-                            let state: ChatLine = serde_json::from_str(&line).unwrap();
-                            println!("{:?}", state);
-                        },
-                        _ => panic!("Unknown state")
-                    }
-                },
-                Err(_) => break
-            }
-        }
-    }
-
     pub fn stream_events() {
         todo!();
     }
@@ -189,20 +145,6 @@ impl Connection {
                 ("room", "player"),
                 ("text", msg)
             ]).unwrap();
-    }
-
-    pub fn abort_game(&self) {
-        let game_id = self.game_id.as_ref().unwrap();
-    
-        ureq::post(format!("https://lichess.org/api/board/game/{}/abort", game_id).as_str())
-            .set("Authorization", &self.authorization).call().unwrap();
-    }
-
-    pub fn resign_game(&self) {
-        let game_id = self.game_id.as_ref().unwrap();
-
-        ureq::post(format!("https://lichess.org/api/board/game/{}/resign", game_id).as_str())
-            .set("Authorization", &self.authorization).call().unwrap();
     }
 
     pub fn get_challenges(&self) {
@@ -245,25 +187,22 @@ impl Connection {
 
 
 pub fn test() {
-    //let token = fs::read_to_string("/home/krzysztof1222/.config/lichess_token").expect("Failed to read api token");
-    //let mut connection = Connection::new(&token);
-    //connection.get_account();
-    //connection.get_games();
-    //connection.stream_state();
-    //connection.perform_move(Move::new(Square::new(4, 0), Square::new(0, 0)));
+    let token = fs::read_to_string("/home/krzysztof1222/.config/lichess_token").expect("Failed to read api token");
+    let conn = connection::Connection::new(&token);
 
-   // connection.write_in_chat("lol");
-   // connection.abort_game();
-   // connection.resign_game();
+//    let challenge = conn.challenge();
+//    let game = challenge.ai();
 
-    //connection.get_challenges();
-    //connection.create_challenge("Xkali");
-    // connection.accept_challenge("xd")
-    
-    //connection.open_challenge();
+    /*
+    for state_change in game.stream().take(3) {
+        match state_change {
+            game::GameState::Full(full) => println!("Full: {:?}", full),
+            game::GameState::State(state) => println!("State: {:?}", state),
+            game::GameState::ChatLine(line) => println!("Line: {:?}", line),
+            game::GameState::Err => panic!()
+        }
+    }*/
 
-    let conn = connection::Connection::authorize();
-
-    // requires authorization
-    println!("{}", conn.create_reqest("GET", "https://lichess.org/api/challenge").call().unwrap().into_string().unwrap());
+//    game.abort();
+//    game.resign();
 }
