@@ -8,6 +8,10 @@ pub mod menu {
     mod computer_menu;
 }
 
+pub mod board_ui {
+    pub mod board_ui;
+}
+
 pub use crate::menu::main_menu;
 
 //Utils for now here, will be moved somewhere else later (maybe)
