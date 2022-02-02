@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 lichess_api = { path = "../lichess_api" }
 chess_api = { path = "../chess_api" }
-cursive = "*"
+tui = "0.17.0"
+crossterm = "0.22"

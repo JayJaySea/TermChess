@@ -8,8 +8,9 @@ pub mod menu {
     mod computer_menu;
 }
 
-pub mod board_ui {
-    pub mod board_ui;
+pub mod board_manager {
+    pub mod board_manager;
+    pub mod chess_board;
 }
 
 pub use crate::menu::main_menu;
