@@ -2,7 +2,7 @@ use tui::{
     widgets::Widget,
     buffer::Buffer,
     layout::{ Alignment, Rect },
-    style::{ Color, Style },
+    style::{ Color, Style, Modifier},
 };
 
 use chess_api::board::Board;
@@ -26,7 +26,7 @@ impl ChessBoard {
                     display.push(ChessBoard::get_piece_char(p.piece_type()));
                     *color = match p.color() {
                         PieceColor::WHITE => 1,
-                        PieceColor::BLACK => 0,
+                        PieceColor::BLACK => 2,
                     }
                 },
                 None => {
@@ -55,12 +55,35 @@ impl ChessBoard {
 
 impl Widget for ChessBoard {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let white = Style::default()
+            .fg(Color::White)
+            .bg(Color::Black)
+            .add_modifier(Modifier::BOLD);
+
+        let black = Style::default()
+            .fg(Color::Red)
+            .bg(Color::Black)
+            .add_modifier(Modifier::BOLD);
+
+        let dots = Style::default()
+            .fg(Color::Gray)
+            .bg(Color::Black)
+            .add_modifier(Modifier::BOLD);
+
         for (n, c) in (0..64).zip(self.display.chars()) {
             if n % 8 == 0 {
-                buf.set_string(area.x, area.y + n/8, (8 - n/8).to_string(), Style::default());
+                buf.set_string(area.x, area.y + n as u16/8, (8 - n/8).to_string(), dots);
             }
-            buf.set_string(2*n%16 + area.x + 2, n/8 + area.y, c.to_string(), Style::default());
+
+            let mut style = dots;
+            if self.colors[n] == 1 {
+                style = white;
+            }
+            else if self.colors[n] == 2 {
+                style = black;
+            }
+            buf.set_string(2*(n as u16)%16 + area.x + 2, (n as u16)/8 + area.y, c.to_string(), style);
         }
-        buf.set_string(area.x + 2, area.y + 8, String::from("a b c d e f g h"), Style::default());
+        buf.set_string(area.x + 2, area.y + 8, String::from("a b c d e f g h"), dots);
     }
 }
